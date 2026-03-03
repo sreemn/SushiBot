@@ -1,5 +1,3 @@
-import fetch from "node-fetch";
-
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const CRON_SECRET = process.env.CRON_SECRET;
 
@@ -20,25 +18,22 @@ export default async function handler(req, res) {
   const randomImage =
     sushiImages[Math.floor(Math.random() * sushiImages.length)];
 
-  await fetch(
-    `https://discord.com/api/v10/channels/${CHANNEL_ID}/messages`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bot ${BOT_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        embeds: [
-          {
-            title: "🍣 Fresh Sushi Drop",
-            image: { url: randomImage },
-            color: 0xc2ceff,
-          },
-        ],
-      }),
-    }
-  );
+  await fetch(`https://discord.com/api/v10/channels/${CHANNEL_ID}/messages`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bot ${BOT_TOKEN}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      embeds: [
+        {
+          title: "🍣 Fresh Sushi Drop",
+          image: { url: randomImage },
+          color: 0xc2ceff
+        }
+      ]
+    })
+  });
 
   return res.status(200).json({ success: true });
 }
