@@ -18,7 +18,7 @@ async function postSushi() {
   const randomImage =
     sushiImages[Math.floor(Math.random() * sushiImages.length)];
 
-  const response = await fetch(
+  const messageRes = await fetch(
     `https://discord.com/api/v10/channels/${CHANNEL_ID}/messages`,
     {
       method: "POST",
@@ -38,10 +38,23 @@ async function postSushi() {
     }
   );
 
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text);
+  if (!messageRes.ok) {
+    const errorText = await messageRes.text();
+    throw new Error(errorText);
   }
+
+  const messageData = await messageRes.json();
+  const messageId = messageData.id;
+
+  await fetch(
+    `https://discord.com/api/v10/channels/${CHANNEL_ID}/messages/${messageId}/reactions/%F0%9F%8D%A3/@me`,
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bot ${BOT_TOKEN}`
+      }
+    }
+  );
 }
 
 export default async function handler(req, res) {
