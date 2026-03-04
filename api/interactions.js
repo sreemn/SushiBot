@@ -23,7 +23,6 @@ async function sendCommandsPanel() {
 
   const utility = [
     "<:blueDot:1478822082061271131> `/userinfo`",
-    "<:blueDot:1478822082061271131> `/serverinfo`",
     "<:blueDot:1478822082061271131> `/avatar`",
     "<:blueDot:1478822082061271131> `/ping`",
     "<:blueDot:1478822082061271131> `/help`"
