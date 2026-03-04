@@ -33,28 +33,16 @@ export default async function handler(req, res) {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          content: "**Sushi Command**",
-          flags: 1 << 15,
+          content: "🍣 **Sushi Command Panel**",
+          flags: 32768,
           components: [
             {
               type: 17,
               components: [
-                {
-                  type: 10,
-                  content: "**Moderation Commands**"
-                },
-                {
-                  type: 10,
-                  content: moderation
-                },
-                {
-                  type: 10,
-                  content: "**Utility Commands**"
-                },
-                {
-                  type: 10,
-                  content: utility
-                }
+                { type: 10, content: "**Moderation Commands**" },
+                { type: 10, content: moderation },
+                { type: 10, content: "**Utility Commands**" },
+                { type: 10, content: utility }
               ]
             }
           ]
@@ -62,9 +50,12 @@ export default async function handler(req, res) {
       }
     );
 
-    const data = await response.json();
+    const text = await response.text();
 
-    return res.status(200).json({ success: true, data });
+    return res.status(200).json({
+      status: response.status,
+      response: text
+    });
 
   } catch (err) {
     return res.status(500).json({ error: err.message });
