@@ -86,7 +86,7 @@ async function logCase(action, userId, moderatorId, reason) {
     body: JSON.stringify({
       embeds: [{
         title: `Case #${CASE_ID}`,
-        color: 12714495,          // #c2ceff - light sapphire/periwinkle
+        color: 12714495,
         fields: [
           { name: "Action", value: action, inline: true },
           { name: "User", value: `<@${userId}>`, inline: true },
@@ -159,13 +159,12 @@ export default async function handler(req, res) {
 
     if (command === "ban") await banUser(guildId, userId, reason);
     if (command === "kick") await kickUser(guildId, userId);
-    // TODO: add timeout logic (mute role or timeout endpoint)
 
     await logCase(command.toUpperCase(), userId, moderatorId, reason);
 
-    const actionWord = command === "timeout" ? "Timed out" : 
-                      command === "warn"    ? "Warned"    : 
-                      command.charAt(0).toUpperCase() + command.slice(1) + "ed";
+    const actionWord = command === "timeout" ? "Timed out" :
+                       command === "warn"    ? "Warned"    :
+                       command.charAt(0).toUpperCase() + command.slice(1) + "ed";
 
     return res.json({
       type: 4,
@@ -184,27 +183,24 @@ export default async function handler(req, res) {
 
   if (command === "userinfo") {
     const targetId = body.data.options?.[0]?.value ?? member.user.id;
-    const target = body.data.options?.[0]?.value 
-      ? { id: targetId } 
-      : member.user;
 
     return res.json({
       type: 4,
       data: {
-        content: `**User Information**\n• ID: ${target.id}\n• Mention: <@${target.id}>`
+        content: `**User Information**\n• ID: ${targetId}\n• Mention: <@${targetId}>`
       }
     });
   }
 
   if (command === "avatar") {
     const targetId = body.data.options?.[0]?.value ?? member.user.id;
-    const user = body.data.options?.[0]?.value 
-      ? { id: targetId, avatar: null } 
-      : member.user;
+    const avatarHash = body.data.options?.[0]?.value 
+      ? null 
+      : member.user.avatar;
 
-    const avatarUrl = user.avatar
-      ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=1024`
-      : `https://cdn.discordapp.com/embed/avatars/${Number(user.discriminator ?? 0) % 5}.png`;
+    const avatarUrl = avatarHash
+      ? `https://cdn.discordapp.com/avatars/${targetId}/${avatarHash}.png?size=1024`
+      : `https://cdn.discordapp.com/embed/avatars/${Math.floor(Math.random() * 6)}.png`;
 
     return res.json({
       type: 4,
@@ -216,26 +212,34 @@ export default async function handler(req, res) {
     return res.json({
       type: 4,
       data: {
-        content:
-`**Sapphire Moderation**
-Clean • Precise • Apple-inspired
-
-**Moderation**
-/ban     — Permanent removal
-/kick    — Server removal
-/timeout — Temporary restriction
-/warn    — Record infraction
-
-**Records**
-/history — Full case log
-/lookup  — View specific case
-/uncase  — Remove entry
-
-**Utility**
-/userinfo — Member details
-/avatar   — Profile picture
-/ping     — Latency check
-/help     — This panel`
+        embeds: [{
+          title: "Sushi Bot Command's",
+          description: "Get information about sushi commands.",
+          color: 12714495,
+          fields: [
+            {
+              name: "Moderation Commands:",
+              value:
+                "<:blueDot:1478822082061271131> `/warn`\n" +
+                "<:blueDot:1478822082061271131> `/kick`\n" +
+                "<:blueDot:1478822082061271131> `/ban`\n" +
+                "<:blueDot:1478822082061271131> `/timeout`\n" +
+                "<:blueDot:1478822082061271131> `/history`\n" +
+                "<:blueDot:1478822082061271131> `/lookup`\n" +
+                "<:blueDot:1478822082061271131> `/uncase`",
+              inline: false
+            },
+            {
+              name: "Utility Commands:",
+              value:
+                "<:sushiDot:1478821870999441489> `/userinfo`\n" +
+                "<:sushiDot:1478821870999441489> `/avatar`\n" +
+                "<:sushiDot:1478821870999441489> `/ping`\n" +
+                "<:sushiDot:1478821870999441489> `/help`",
+              inline: false
+            }
+          ]
+        }]
       }
     });
   }
