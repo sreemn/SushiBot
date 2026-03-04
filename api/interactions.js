@@ -209,40 +209,62 @@ export default async function handler(req, res) {
   }
 
   if (command === "help") {
-    return res.json({
-      type: 4,
-      data: {
-        embeds: [{
-          title: "Sushi Bot Command's",
-          description: "Get information about sushi commands.",
-          color: 12714495,
-          fields: [
+  return res.json({
+    type: 4,
+    data: {
+      components: [
+        {
+          type: 17,
+          components: [
             {
-              name: "Moderation Commands:",
-              value:
-                "<:blueDot:1478822082061271131> `/warn`\n" +
-                "<:blueDot:1478822082061271131> `/kick`\n" +
-                "<:blueDot:1478822082061271131> `/ban`\n" +
-                "<:blueDot:1478822082061271131> `/timeout`\n" +
-                "<:blueDot:1478822082061271131> `/history`\n" +
-                "<:blueDot:1478822082061271131> `/lookup`\n" +
-                "<:blueDot:1478822082061271131> `/uncase`",
-              inline: false
+              type: 10,
+              content: "# Sushi Bot Commands"
             },
+
             {
-              name: "Utility Commands:",
-              value:
-                "<:sushiDot:1478821870999441489> `/userinfo`\n" +
-                "<:sushiDot:1478821870999441489> `/avatar`\n" +
-                "<:sushiDot:1478821870999441489> `/ping`\n" +
-                "<:sushiDot:1478821870999441489> `/help`",
-              inline: false
+              type: 9,
+              components: [
+                {
+                  type: 10,
+                  content: "**Moderation Commands**"
+                },
+                {
+                  type: 10,
+                  content:
+                    "<:blueDot:1478822082061271131> `/warn`\n" +
+                    "<:blueDot:1478822082061271131> `/kick`\n" +
+                    "<:blueDot:1478822082061271131> `/ban`\n" +
+                    "<:blueDot:1478822082061271131> `/timeout`\n" +
+                    "<:blueDot:1478822082061271131> `/history`\n" +
+                    "<:blueDot:1478822082061271131> `/lookup`\n" +
+                    "<:blueDot:1478822082061271131> `/uncase`"
+                }
+              ]
+            },
+
+            {
+              type: 9,
+              components: [
+                {
+                  type: 10,
+                  content: "**Utility Commands**"
+                },
+                {
+                  type: 10,
+                  content:
+                    "<:sushiDot:1478821870999441489> `/userinfo`\n" +
+                    "<:sushiDot:1478821870999441489> `/avatar`\n" +
+                    "<:sushiDot:1478821870999441489> `/ping`\n" +
+                    "<:sushiDot:1478821870999441489> `/help`"
+                }
+              ]
             }
           ]
-        }]
-      }
-    });
-  }
+        }
+      ]
+    }
+  });
+}
 
   return res.json({
     type: 4,
