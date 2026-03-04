@@ -1,6 +1,6 @@
 export const config = {
   api: {
-    bodyParser: false
+    bodyParser: true
   }
 };
 
@@ -10,12 +10,12 @@ const BOT_ID = process.env.BOT_ID;
 async function replySushi(channelId, messageId) {
 
   const sushiMessages = [
-    "<:corgiroll:1478798767015858388> The corgi chef heard the ping and rolled in with sushi!",
-    "<:winksushi:1478797530639761429> Hey there... you pinged me. Was it for sushi? 😉",
-    "<:sushiangryping:1478797613578059856> WHO PINGED THE SUSHI MASTER?!",
-    "<:sushiangry:1478797656254841003> Hey! Stop poking the sushi bot unless you bring soy sauce.",
-    "<:sushibox:1478797564164964424> Fresh sushi delivery detected. What do you need?",
-    "<:sushi:1478797690157666384> A wild sushi bot appeared after being pinged."
+    "<:corgiroll:1478798767015858388> The corgi chef rolled in with sushi!",
+    "<:winksushi:1478797530639761429> Hey... was that a sushi ping? 😉",
+    "<:sushiangryping:1478797613578059856> WHO SUMMONED THE SUSHI MASTER?!",
+    "<:sushiangry:1478797656254841003> Stop poking the sushi bot unless you bring soy sauce.",
+    "<:sushibox:1478797564164964424> Sushi delivery detected. What do you need?",
+    "<:sushi:1478797690157666384> A wild sushi bot appeared."
   ];
 
   const msg = sushiMessages[Math.floor(Math.random() * sushiMessages.length)];
