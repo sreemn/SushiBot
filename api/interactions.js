@@ -86,14 +86,17 @@ async function logCase(action, userId, moderatorId, reason) {
     body: JSON.stringify({
       embeds: [{
         title: `Case #${CASE_ID}`,
-        color: 15158332,
+        color: 12714495,          // #c2ceff - light sapphire/periwinkle
         fields: [
           { name: "Action", value: action, inline: true },
           { name: "User", value: `<@${userId}>`, inline: true },
           { name: "Moderator", value: `<@${moderatorId}>`, inline: true },
           { name: "Reason", value: reason || "No reason provided" }
         ],
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        footer: {
+          text: "Sapphire • Moderation Log"
+        }
       }]
     })
   });
@@ -139,7 +142,7 @@ export default async function handler(req, res) {
     if (!isModerator(member.roles)) {
       return res.json({
         type: 4,
-        data: { content: "You don't have permission to use this command." }
+        data: { content: "Insufficient permissions." }
       });
     }
 
@@ -150,26 +153,24 @@ export default async function handler(req, res) {
     if (!userId) {
       return res.json({
         type: 4,
-        data: { content: "Missing target user." }
+        data: { content: "Target user required." }
       });
     }
 
-    if (command === "ban") {
-      await banUser(guildId, userId, reason);
-    }
-
-    if (command === "kick") {
-      await kickUser(guildId, userId);
-    }
-
-    // timeout would need additional duration handling here
+    if (command === "ban") await banUser(guildId, userId, reason);
+    if (command === "kick") await kickUser(guildId, userId);
+    // TODO: add timeout logic (mute role or timeout endpoint)
 
     await logCase(command.toUpperCase(), userId, moderatorId, reason);
+
+    const actionWord = command === "timeout" ? "Timed out" : 
+                      command === "warn"    ? "Warned"    : 
+                      command.charAt(0).toUpperCase() + command.slice(1) + "ed";
 
     return res.json({
       type: 4,
       data: {
-        content: `**${command}** applied successfully\nUser: <@${userId}>\nReason: ${reason}`
+        content: `**${actionWord}** <@${userId}>\n**Reason** — ${reason}`
       }
     });
   }
@@ -177,31 +178,33 @@ export default async function handler(req, res) {
   if (command === "ping") {
     return res.json({
       type: 4,
-      data: { content: "Pong!" }
+      data: { content: "Pong." }
     });
   }
 
   if (command === "userinfo") {
-    const target = body.data.options?.[0]?.value ? 
-      { id: body.data.options[0].value } : 
-      member.user;
+    const targetId = body.data.options?.[0]?.value ?? member.user.id;
+    const target = body.data.options?.[0]?.value 
+      ? { id: targetId } 
+      : member.user;
 
     return res.json({
       type: 4,
       data: {
-        content: `**User Info**\nUsername: ${target.username}\nID: ${target.id}`
+        content: `**User Information**\n• ID: ${target.id}\n• Mention: <@${target.id}>`
       }
     });
   }
 
   if (command === "avatar") {
-    const target = body.data.options?.[0]?.value ? 
-      { id: body.data.options[0].value, avatar: null } : 
-      member.user;
+    const targetId = body.data.options?.[0]?.value ?? member.user.id;
+    const user = body.data.options?.[0]?.value 
+      ? { id: targetId, avatar: null } 
+      : member.user;
 
-    const avatarUrl = target.avatar
-      ? `https://cdn.discordapp.com/avatars/${target.id}/${target.avatar}.png?size=1024`
-      : `https://cdn.discordapp.com/embed/avatars/${Number(target.discriminator) % 5}.png`;
+    const avatarUrl = user.avatar
+      ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=1024`
+      : `https://cdn.discordapp.com/embed/avatars/${Number(user.discriminator ?? 0) % 5}.png`;
 
     return res.json({
       type: 4,
@@ -214,28 +217,31 @@ export default async function handler(req, res) {
       type: 4,
       data: {
         content:
-`Sushi Command Center
+`**Sapphire Moderation**
+Clean • Precise • Apple-inspired
 
 **Moderation**
-/warn
-/kick
-/ban
-/timeout
-/history
-/lookup
-/uncase
+/ban     — Permanent removal
+/kick    — Server removal
+/timeout — Temporary restriction
+/warn    — Record infraction
+
+**Records**
+/history — Full case log
+/lookup  — View specific case
+/uncase  — Remove entry
 
 **Utility**
-/userinfo
-/avatar
-/ping
-/help`
+/userinfo — Member details
+/avatar   — Profile picture
+/ping     — Latency check
+/help     — This panel`
       }
     });
   }
 
   return res.json({
     type: 4,
-    data: { content: "Unknown command." }
+    data: { content: "Command not recognized." }
   });
 }
