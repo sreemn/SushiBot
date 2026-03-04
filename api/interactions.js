@@ -5,22 +5,23 @@ export const config = {
 };
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
-const CHANNEL_ID = "1478451760027799685";
+const BOT_ID = process.env.BOT_ID;
 
-async function postSushi() {
+async function replySushi(channelId, messageId) {
 
-  const sushiImages = [
-    "https://images.unsplash.com/photo-1579871494447-9811cf80d66c",
-    "https://images.unsplash.com/photo-1553621042-f6e147245754",
-    "https://images.unsplash.com/photo-1562158070-622a7c1c09f4",
-    "https://images.unsplash.com/photo-1541696432-82c6da8ce7bf"
+  const sushiMessages = [
+    "<:corgiroll:1478798767015858388> The corgi chef heard the ping and rolled in with sushi!",
+    "<:winksushi:1478797530639761429> Hey there... you pinged me. Was it for sushi? 😉",
+    "<:sushiangryping:1478797613578059856> WHO PINGED THE SUSHI MASTER?!",
+    "<:sushiangry:1478797656254841003> Hey! Stop poking the sushi bot unless you bring soy sauce.",
+    "<:sushibox:1478797564164964424> Fresh sushi delivery detected. What do you need?",
+    "<:sushi:1478797690157666384> A wild sushi bot appeared after being pinged."
   ];
 
-  const randomImage =
-    sushiImages[Math.floor(Math.random() * sushiImages.length)];
+  const msg = sushiMessages[Math.floor(Math.random() * sushiMessages.length)];
 
   const messageRes = await fetch(
-    `https://discord.com/api/v10/channels/${CHANNEL_ID}/messages`,
+    `https://discord.com/api/v10/channels/${channelId}/messages`,
     {
       method: "POST",
       headers: {
@@ -28,24 +29,18 @@ async function postSushi() {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        embeds: [
-          {
-            title: "🍣 Fresh Sushi Drop",
-            image: {
-              url: randomImage
-            },
-            color: 16711680
-          }
-        ]
+        message_reference: {
+          message_id: messageId
+        },
+        content: msg
       })
     }
   );
 
   const messageData = await messageRes.json();
-  const messageId = messageData.id;
 
   await fetch(
-    `https://discord.com/api/v10/channels/${CHANNEL_ID}/messages/${messageId}/reactions/%F0%9F%8D%A3/@me`,
+    `https://discord.com/api/v10/channels/${channelId}/messages/${messageData.id}/reactions/1478798767015858388/@me`,
     {
       method: "PUT",
       headers: {
@@ -57,8 +52,21 @@ async function postSushi() {
 
 export default async function handler(req, res) {
   try {
-    await postSushi();
+
+    const body = req.body;
+
+    const channelId = body?.channel_id;
+    const messageId = body?.id;
+    const mentions = body?.mentions || [];
+
+    const mentionedBot = mentions.some(user => user.id === BOT_ID);
+
+    if (mentionedBot) {
+      await replySushi(channelId, messageId);
+    }
+
     return res.status(200).json({ success: true });
+
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
