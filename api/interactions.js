@@ -10,11 +10,11 @@ const BOT_TOKEN = process.env.BOT_TOKEN;
 const commands = [
   {
     name: "help",
-    description: "Show bot information"
+    description: "Get information about sushi"
   },
   {
     name: "status",
-    description: "Check the bot's real-time latency and heartbeat"
+    description: "View sushi bot status"
   }
 ];
 
@@ -50,12 +50,9 @@ export default async function handler(req, res) {
           flags: 64,
           embeds: [{
             color: 0xc2ceff,
-            description: "**Overview**\n\n" +
-              "> `/help <command>` - Shows information about a command\n" +
-              "> `/help <feature>` - Shows information about a feature\n\n" +
-              "> Discord server: https://discord.gg/QkvahZ4yW3\n" +
-              "> Website: https://sushibot.co/\n" +
-              "> Dashboard: https://dash.sushibot.co/"
+            description: "You can find a list of commands here: https://sushibot.co/commands\n" +
+                         "Join the support server if you still have questions: https://discord.gg/QkvahZ4yW3\n\n" +
+                         "The privacy policy can be found here: https://sushibot.co/privacy"
           }]
         }
       });
