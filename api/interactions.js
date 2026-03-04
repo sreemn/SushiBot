@@ -1,7 +1,5 @@
 export const config = {
-  api: {
-    bodyParser: true
-  }
+  api: { bodyParser: true }
 };
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
@@ -17,66 +15,27 @@ const MOD_ROLES = [
 
 let CASE_ID = 0;
 
-const commands = [
-  {
-    name: "ban",
-    description: "Ban a member",
-    options: [
-      { name: "user", type: 6, description: "User", required: true },
-      { name: "reason", type: 3, description: "Reason", required: true }
-    ]
-  },
-  {
-    name: "kick",
-    description: "Kick a member",
-    options: [
-      { name: "user", type: 6, description: "User", required: true },
-      { name: "reason", type: 3, description: "Reason", required: true }
-    ]
-  },
-  {
-    name: "timeout",
-    description: "Timeout a member",
-    options: [
-      { name: "user", type: 6, description: "User", required: true },
-      { name: "reason", type: 3, description: "Reason", required: true },
-      { name: "duration", type: 4, description: "Duration in minutes", required: false }
-    ]
-  },
-  {
-    name: "warn",
-    description: "Warn a member",
-    options: [
-      { name: "user", type: 6, description: "User", required: true },
-      { name: "reason", type: 3, description: "Reason", required: true }
-    ]
-  },
-  { name: "history", description: "View moderation history" },
-  { name: "lookup", description: "Lookup a case" },
-  { name: "uncase", description: "Remove a case" },
-  { name: "userinfo", description: "View user information" },
-  { name: "avatar", description: "View user avatar" },
-  { name: "ping", description: "Check bot latency" },
-  { name: "help", description: "Show help panel" }
-];
-
-async function registerCommands() {
-  await fetch(`https://discord.com/api/v10/applications/${APP_ID}/commands`, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bot ${BOT_TOKEN}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(commands)
-  });
-}
-
 function isModerator(memberRoles) {
   return memberRoles.some(r => MOD_ROLES.includes(r));
 }
 
+async function sendFollowup(interactionToken, data) {
+  await fetch(
+    `https://discord.com/api/v10/webhooks/${APP_ID}/${interactionToken}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bot ${BOT_TOKEN}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    }
+  );
+}
+
 async function logCase(action, userId, moderatorId, reason) {
   CASE_ID++;
+
   await fetch(`https://discord.com/api/v10/channels/${LOG_CHANNEL}/messages`, {
     method: "POST",
     headers: {
@@ -94,9 +53,7 @@ async function logCase(action, userId, moderatorId, reason) {
           { name: "Reason", value: reason || "No reason provided" }
         ],
         timestamp: new Date().toISOString(),
-        footer: {
-          text: "Sapphire • Moderation Log"
-        }
+        footer: { text: "Sapphire • Moderation Log" }
       }]
     })
   });
@@ -116,13 +73,12 @@ async function banUser(guildId, userId, reason) {
 async function kickUser(guildId, userId) {
   await fetch(`https://discord.com/api/v10/guilds/${guildId}/members/${userId}`, {
     method: "DELETE",
-    headers: {
-      Authorization: `Bot ${BOT_TOKEN}`
-    }
+    headers: { Authorization: `Bot ${BOT_TOKEN}` }
   });
 }
 
 export default async function handler(req, res) {
+
   const body = req.body;
 
   if (body.type === 1) {
@@ -137,8 +93,12 @@ export default async function handler(req, res) {
   const guildId = body.guild_id;
   const member = body.member;
   const moderatorId = member.user.id;
+  const interactionToken = body.token;
 
-  if (["ban", "kick", "timeout", "warn"].includes(command)) {
+  /* MODERATION COMMANDS */
+
+  if (["ban","kick","timeout","warn"].includes(command)) {
+
     if (!isModerator(member.roles)) {
       return res.json({
         type: 4,
@@ -147,8 +107,9 @@ export default async function handler(req, res) {
     }
 
     const userId = body.data.options.find(o => o.name === "user")?.value;
-    const reasonObj = body.data.options.find(o => o.name === "reason");
-    const reason = reasonObj ? reasonObj.value : "No reason provided";
+    const reason =
+      body.data.options.find(o => o.name === "reason")?.value ||
+      "No reason provided";
 
     if (!userId) {
       return res.json({
@@ -157,22 +118,29 @@ export default async function handler(req, res) {
       });
     }
 
+    /* Immediate response to Discord */
+    res.json({ type: 5 });
+
     if (command === "ban") await banUser(guildId, userId, reason);
     if (command === "kick") await kickUser(guildId, userId);
 
     await logCase(command.toUpperCase(), userId, moderatorId, reason);
 
-    const actionWord = command === "timeout" ? "Timed out" :
-                       command === "warn"    ? "Warned"    :
-                       command.charAt(0).toUpperCase() + command.slice(1) + "ed";
+    const actionWord =
+      command === "timeout"
+        ? "Timed out"
+        : command === "warn"
+        ? "Warned"
+        : command.charAt(0).toUpperCase() + command.slice(1) + "ed";
 
-    return res.json({
-      type: 4,
-      data: {
-        content: `**${actionWord}** <@${userId}>\n**Reason** — ${reason}`
-      }
+    await sendFollowup(interactionToken,{
+      content:`**${actionWord}** <@${userId}>\n**Reason** — ${reason}`
     });
+
+    return;
   }
+
+  /* SIMPLE COMMANDS */
 
   if (command === "ping") {
     return res.json({
@@ -193,14 +161,13 @@ export default async function handler(req, res) {
   }
 
   if (command === "avatar") {
+
     const targetId = body.data.options?.[0]?.value ?? member.user.id;
-    const avatarHash = body.data.options?.[0]?.value 
-      ? null 
-      : member.user.avatar;
+    const avatarHash = member.user.avatar;
 
     const avatarUrl = avatarHash
       ? `https://cdn.discordapp.com/avatars/${targetId}/${avatarHash}.png?size=1024`
-      : `https://cdn.discordapp.com/embed/avatars/${Math.floor(Math.random() * 6)}.png`;
+      : `https://cdn.discordapp.com/embed/avatars/${Math.floor(Math.random()*6)}.png`;
 
     return res.json({
       type: 4,
@@ -208,66 +175,62 @@ export default async function handler(req, res) {
     });
   }
 
+  /* HELP PANEL */
+
   if (command === "help") {
-  return res.json({
-    type: 4,
-    data: {
-      components: [
-        {
-          type: 17,
-          components: [
-            {
-              type: 10,
-              content: "# Sushi Bot Commands"
-            },
+    return res.json({
+      type: 4,
+      data: {
+        components:[
+          {
+            type:17,
+            components:[
 
-            {
-              type: 9,
-              components: [
-                {
-                  type: 10,
-                  content: "**Moderation Commands**"
-                },
-                {
-                  type: 10,
-                  content:
-                    "<:blueDot:1478822082061271131> `/warn`\n" +
-                    "<:blueDot:1478822082061271131> `/kick`\n" +
-                    "<:blueDot:1478822082061271131> `/ban`\n" +
-                    "<:blueDot:1478822082061271131> `/timeout`\n" +
-                    "<:blueDot:1478822082061271131> `/history`\n" +
-                    "<:blueDot:1478822082061271131> `/lookup`\n" +
-                    "<:blueDot:1478822082061271131> `/uncase`"
-                }
-              ]
-            },
+              { type:10, content:"# Sushi Bot Commands" },
 
-            {
-              type: 9,
-              components: [
-                {
-                  type: 10,
-                  content: "**Utility Commands**"
-                },
-                {
-                  type: 10,
-                  content:
-                    "<:sushiDot:1478821870999441489> `/userinfo`\n" +
-                    "<:sushiDot:1478821870999441489> `/avatar`\n" +
-                    "<:sushiDot:1478821870999441489> `/ping`\n" +
-                    "<:sushiDot:1478821870999441489> `/help`"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  });
-}
+              {
+                type:9,
+                components:[
+                  { type:10, content:"**Moderation Commands**" },
+                  {
+                    type:10,
+                    content:
+                      "<:blueDot:1478822082061271131> `/warn`\n"+
+                      "<:blueDot:1478822082061271131> `/kick`\n"+
+                      "<:blueDot:1478822082061271131> `/ban`\n"+
+                      "<:blueDot:1478822082061271131> `/timeout`\n"+
+                      "<:blueDot:1478822082061271131> `/history`\n"+
+                      "<:blueDot:1478822082061271131> `/lookup`\n"+
+                      "<:blueDot:1478822082061271131> `/uncase`"
+                  }
+                ]
+              },
+
+              {
+                type:9,
+                components:[
+                  { type:10, content:"**Utility Commands**" },
+                  {
+                    type:10,
+                    content:
+                      "<:sushiDot:1478821870999441489> `/userinfo`\n"+
+                      "<:sushiDot:1478821870999441489> `/avatar`\n"+
+                      "<:sushiDot:1478821870999441489> `/ping`\n"+
+                      "<:sushiDot:1478821870999441489> `/help`"
+                  }
+                ]
+              }
+
+            ]
+          }
+        ]
+      }
+    });
+  }
 
   return res.json({
-    type: 4,
-    data: { content: "Command not recognized." }
+    type:4,
+    data:{ content:"Command not recognized." }
   });
+
 }
