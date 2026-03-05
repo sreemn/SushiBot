@@ -150,7 +150,7 @@ export default async function handler(req, res) {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          content: `Blox Help Requested!\n<@&${HELPER_ROLE_ID}>, <@${userId}> needs assistance!`,
+          content: `**Blox Help Requested!**\n<@&${HELPER_ROLE_ID}>, <@${userId}> needs assistance!`,
           allowed_mentions: {
             roles: [HELPER_ROLE_ID],
             users: [userId]
