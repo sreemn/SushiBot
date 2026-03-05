@@ -27,6 +27,10 @@ const commands = [
         required: true
       }
     ]
+  },
+  {
+    name: "bloxhelp",
+    description: "Request assistance from the helper team"
   }
 ];
 
@@ -130,6 +134,35 @@ export default async function handler(req, res) {
             ],
             footer: !member ? { text: 'The user you are inspecting is not on this server.' } : undefined
           }]
+        }
+      });
+    }
+
+    if (name === "bloxhelp") {
+      const HELPER_ROLE_ID = "1479018520942481560";
+      const HELPER_CHANNEL_ID = "1479020201348694056";
+      const userId = body.member.user.id;
+
+      await fetch(`https://discord.com/api/v10/channels/${HELPER_CHANNEL_ID}/messages`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bot ${BOT_TOKEN}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          content: `Blox Help Requested!\n<@&${HELPER_ROLE_ID}>, <@${userId}> needs assistance!`,
+          allowed_mentions: {
+            roles: [HELPER_ROLE_ID],
+            users: [userId]
+          }
+        })
+      });
+
+      return res.status(200).json({
+        type: 4,
+        data: {
+          content: "Your request has been sent to the Helpers!",
+          flags: 64
         }
       });
     }
