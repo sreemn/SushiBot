@@ -66,7 +66,7 @@ export default async function handler(req, res) {
         data: {
           flags: 64,
           embeds: [{
-            color: 0x8f95f5,
+            color: 0xe7a67c,
             description: "You can find a list of commands here: https://sushibot.co/commands\n" +
                          "Join the server if you still have questions: https://discord.gg/QkvahZ4yW3\n\n" +
                          "The privacy policy can be found here: https://sushibot.co/privacy"
