@@ -66,7 +66,7 @@ export default async function handler(req, res) {
         data: {
           flags: 64,
           embeds: [{
-            color: 0xc2ceff,
+            color: 0x8f95f5,
             description: "You can find a list of commands here: https://sushibot.co/commands\n" +
                          "Join the server if you still have questions: https://discord.gg/QkvahZ4yW3\n\n" +
                          "The privacy policy can be found here: https://sushibot.co/privacy"
@@ -84,7 +84,7 @@ export default async function handler(req, res) {
         type: 4,
         data: {
           embeds: [{
-            color: 0xabe9b4,
+            color: 0x8f95f5,
             description: `Heartbeat: \`${heartbeat}ms\`\nLatency: \`${latency}ms\``
           }]
         }
@@ -113,7 +113,7 @@ export default async function handler(req, res) {
         type: 4,
         data: {
           embeds: [{
-            color: 0xf18fac,
+            color: 0x8f95f5,
             author: {
               name: user.discriminator !== "0" ? `${user.username}#${user.discriminator}` : user.username,
               icon_url: avatarUrl
