@@ -127,46 +127,55 @@ export default async function handler(req, res) {
     }
 
     if (name === "anime") {
-      const subreddits = ["AnimeART", "Animewallpaper"];
-      const selectedSub = subreddits[Math.floor(Math.random() * subreddits.length)];
-      const redditRes = await fetch(`https://www.reddit.com/r/${selectedSub}/random.json`);
-      const redditData = await redditRes.json();
-      const post = redditData[0].data.children[0].data;
+      try {
+        const subreddits = ["AnimeART", "Animewallpaper", "waifu"];
+        const selectedSub = subreddits[Math.floor(Math.random() * subreddits.length)];
+        const redditRes = await fetch(`https://www.reddit.com/r/${selectedSub}/random.json`, {
+            headers: { 'User-Agent': 'SushiBot/1.0' }
+        });
+        const redditData = await redditRes.json();
+        const post = redditData[0].data.children[0].data;
 
-      return res.status(200).json({
-        type: 4,
-        data: {
-          flags: 32768,
-          components: [
-            {
-              type: 17,
-              accent_color: 16711935,
-              components: [
-                {
-                  type: 9,
-                  components: [
-                    {
-                      type: 10,
-                      style: "heading",
-                      content: post.title
-                    }
-                  ]
-                },
-                {
-                  type: 12,
-                  items: [
-                    {
-                      media: {
-                        url: post.url
+        return res.status(200).json({
+          type: 4,
+          data: {
+            flags: 32768,
+            components: [
+              {
+                type: 17,
+                accent_color: 16711935,
+                components: [
+                  {
+                    type: 9,
+                    components: [
+                      {
+                        type: 10,
+                        style: "heading",
+                        content: post.title.substring(0, 100)
                       }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      });
+                    ]
+                  },
+                  {
+                    type: 12,
+                    items: [
+                      {
+                        media: {
+                          url: post.url
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        });
+      } catch (e) {
+        return res.status(200).json({
+          type: 4,
+          data: { content: "Failed to fetch image. Try again.", flags: 64 }
+        });
+      }
     }
   }
 
