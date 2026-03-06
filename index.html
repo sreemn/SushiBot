@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Neon Docs</title>
+
+<style>
+
+/* Base */
+*{
+box-sizing:border-box;
+margin:0;
+padding:0;
+}
+
+body{
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+background:hsl(201,18%,19%);
+color:#d3d3d3;
+display:flex;
+}
+
+/* Sidebar */
+
+.sidebar{
+width:270px;
+background:hsl(201,18%,17%);
+min-height:100vh;
+padding:25px;
+border-right:1px solid hsl(201,18%,25%);
+position:fixed;
+}
+
+.sidebar h2{
+color:#f0c0fe;
+margin-bottom:20px;
+font-weight:400;
+}
+
+.sidebar a{
+display:block;
+color:#d3d3d3;
+text-decoration:none;
+padding:8px 0;
+font-size:14px;
+}
+
+.sidebar a:hover{
+color:#f0c0fe;
+}
+
+/* Content */
+
+.content{
+margin-left:270px;
+padding:40px;
+max-width:900px;
+}
+
+h1{
+font-size:38px;
+color:white;
+margin-bottom:15px;
+}
+
+h2{
+margin-top:40px;
+padding-bottom:10px;
+border-bottom:1px solid hsl(201,18%,35%);
+font-weight:400;
+}
+
+p{
+margin:10px 0;
+line-height:1.7;
+}
+
+ul{
+margin:10px 0 20px 20px;
+}
+
+ul li{
+margin-bottom:10px;   /* spacing between commands */
+}
+
+a{
+color:#f0c0fe;
+}
+
+code{
+background:hsl(201,18%,25%);
+padding:3px 6px;
+border-radius:4px;
+font-family:monospace;
+}
+
+hr{
+border:none;
+border-top:1px solid hsl(201,18%,35%);
+margin:40px 0;
+}
+
+.build{
+margin-top:20px;
+font-size:14px;
+opacity:0.8;
+}
+
+</style>
+</head>
+
+
+<body>
+
+<div class="sidebar">
+
+<h2>Neon Docs</h2>
+
+<a href="#">Overview</a>
+<a href="#links">Links</a>
+<a href="#commands">Commands</a>
+
+</div>
+
+
+<section class="content">
+
+<h1>Neon | Docs</h1>
+
+<p>This is the official docs for the Neon Discord Bot.</p>
+
+
+<h2 id="links">Links</h2>
+
+<ul>
+<li><a href="https://sushibot.co/invite" target="_blank">Invite</a></li>
+<li><a href="https://discord.gg/QkvahZ4yW3" target="_blank">Support</a></li>
+</ul>
+
+
+<h2 id="commands">Commands</h2>
+
+<ul>
+<li><code>/help</code> - Shows bot links</li>
+<li><code>/status</code> - Shows bot status</li>
+<li><code>/userinfo</code> - Shows user info</li>
+<li><code>/bloxhelp</code> - Request helper support</li>
+</ul>
+
+
+<hr>
+
+<p class="build">Current Build: <strong>76f4108e</strong></p>
+
+</section>
+
+</body>
+</html>
