@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Neon Docs</title>
+<title>Sushi Docs</title>
 
 <style>
 
 /* Base */
+
 *{
 box-sizing:border-box;
 margin:0;
@@ -23,25 +24,25 @@ display:flex;
 /* Sidebar */
 
 .sidebar{
-width:270px;
+width:260px;
 background:hsl(201,18%,17%);
 min-height:100vh;
-padding:25px;
+padding:30px 25px;
 border-right:1px solid hsl(201,18%,25%);
 position:fixed;
 }
 
 .sidebar h2{
 color:#f0c0fe;
-margin-bottom:20px;
-font-weight:400;
+margin-bottom:25px;
+font-weight:500;
 }
 
 .sidebar a{
 display:block;
 color:#d3d3d3;
 text-decoration:none;
-padding:8px 0;
+padding:7px 0;
 font-size:14px;
 }
 
@@ -52,72 +53,95 @@ color:#f0c0fe;
 /* Content */
 
 .content{
-margin-left:270px;
-padding:40px;
+margin-left:260px;
+padding:60px 60px;
 max-width:900px;
 }
 
+/* Titles */
+
 h1{
-font-size:38px;
+font-size:42px;
 color:white;
-margin-bottom:15px;
+font-weight:500;
+margin-bottom:25px;
 }
 
 h2{
-margin-top:40px;
-padding-bottom:10px;
+margin-top:60px;
+padding-bottom:15px;
 border-bottom:1px solid hsl(201,18%,35%);
 font-weight:400;
+font-size:32px;
+color:white;
 }
+
+/* Text */
 
 p{
-margin:10px 0;
-line-height:1.7;
+margin-top:20px;
+line-height:1.8;
+font-size:16px;
 }
 
+/* Lists */
+
 ul{
-margin:10px 0 20px 20px;
+margin:20px 0 25px 20px;
 }
 
 ul li{
-margin-bottom:10px;   /* spacing between commands */
+margin-bottom:12px;
+font-size:16px;
 }
 
+/* Links */
+
 a{
+color:#d3d3d3;
+}
+
+a:hover{
 color:#f0c0fe;
 }
 
+/* Code badge */
+
 code{
-background:hsl(201,18%,25%);
-padding:3px 6px;
+background:hsl(201,18%,26%);
+padding:4px 8px;
 border-radius:4px;
 font-family:monospace;
+font-size:14px;
 }
+
+/* Divider */
 
 hr{
 border:none;
 border-top:1px solid hsl(201,18%,35%);
-margin:40px 0;
+margin:50px 0;
 }
 
+/* Build */
+
 .build{
-margin-top:20px;
 font-size:14px;
-opacity:0.8;
+opacity:.8;
 }
 
 </style>
 </head>
 
-
 <body>
 
 <div class="sidebar">
 
-<h2>Neon Docs</h2>
+<h2>Sushi Docs</h2>
 
 <a href="#">Overview</a>
 <a href="#links">Links</a>
+<a href="#prefix">Change the Prefix</a>
 <a href="#commands">Commands</a>
 
 </div>
@@ -125,7 +149,7 @@ opacity:0.8;
 
 <section class="content">
 
-<h1>Neon | Docs</h1>
+<h1>Sushi | Docs</h1>
 
 <p>This is the official docs for the Neon Discord Bot.</p>
 
@@ -137,13 +161,12 @@ opacity:0.8;
 <li><a href="https://discord.gg/QkvahZ4yW3" target="_blank">Support</a></li>
 </ul>
 
-
 <h2 id="commands">Commands</h2>
 
 <ul>
-<li><code>/help</code> - Shows bot links</li>
-<li><code>/status</code> - Shows bot status</li>
-<li><code>/userinfo</code> - Shows user info</li>
+<li><code>/help</code> - Get information about sushi</li>
+<li><code>/status</code> - View sushi bot status</li>
+<li><code>/userinfo</code> - Show information about a user</li>
 <li><code>/bloxhelp</code> - Request helper support</li>
 </ul>
 
