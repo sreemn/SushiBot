@@ -35,8 +35,12 @@ const commands = [
     ]
   },
   {
-    name: "Roles",
+    name: "Timeout",
     type: 2
+  },
+  {
+    name: "Mute",
+    type: 3
   }
 ];
 
@@ -105,6 +109,7 @@ export default async function handler(req, res) {
     }
 
     if (name === "status") {
+
       const interactionTime = Number((BigInt(body.id) >> 22n) + 1420070400000n);
       const latency = Date.now() - interactionTime;
       const heartbeat = Math.floor(Math.random() * (135 - 115) + 115);
@@ -168,20 +173,7 @@ export default async function handler(req, res) {
       });
     }
 
-    if (name === "Roles") {
-
-      const permissions = BigInt(body.member.permissions);
-      const MANAGE_ROLES = 0x10000000n;
-
-      if (!(permissions & MANAGE_ROLES)) {
-        return res.status(200).json({
-          type: 4,
-          data: {
-            content: "You do not have permission to manage roles.",
-            flags: 64
-          }
-        });
-      }
+    if (name === "Timeout") {
 
       const targetUserId = body.data.target_id;
 
@@ -189,64 +181,25 @@ export default async function handler(req, res) {
         type: 4,
         data: {
           flags: 64,
-          embeds: [{
-            color: 0x5865f2,
-            title: "Role Manager",
-            description: `Manage roles for <@${targetUserId}>`
-          }],
-          components: [
-            {
-              type: 1,
-              components: [
-                {
-                  type: 2,
-                  style: 3,
-                  label: "Add Role",
-                  custom_id: `add_role_${targetUserId}`
-                },
-                {
-                  type: 2,
-                  style: 4,
-                  label: "Remove Role",
-                  custom_id: `remove_role_${targetUserId}`
-                }
-              ]
-            }
-          ]
+          content: `Timeout requested for <@${targetUserId}>`
         }
       });
     }
-  }
 
-  if (body.type === 3) {
+    if (name === "Mute") {
 
-    const id = body.data.custom_id;
-
-    if (id.startsWith("add_role_")) {
-
-      const userId = id.split("_")[2];
+      const message = body.data.resolved.messages[body.data.target_id];
+      const targetUserId = message.author.id;
 
       return res.status(200).json({
         type: 4,
         data: {
-          content: `Select a role to add to <@${userId}>`,
-          flags: 64
+          flags: 64,
+          content: `Mute requested for <@${targetUserId}>`
         }
       });
     }
 
-    if (id.startsWith("remove_role_")) {
-
-      const userId = id.split("_")[2];
-
-      return res.status(200).json({
-        type: 4,
-        data: {
-          content: `Select a role to remove from <@${userId}>`,
-          flags: 64
-        }
-      });
-    }
   }
 
   return res.status(200).json({
@@ -256,4 +209,5 @@ export default async function handler(req, res) {
       flags: 64
     }
   });
+
 }
