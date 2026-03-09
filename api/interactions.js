@@ -237,7 +237,7 @@ export default async function handler(req, res) {
       const data = await gif.json();
 
       return res.status(200).json({
-        type: 7,
+        type: 4,
         data: {
           content: `<@${clickerId}> hugged <@${originalAuthorId}> back!`,
           embeds: [
@@ -246,24 +246,6 @@ export default async function handler(req, res) {
               image: {
                 url: data.url
               }
-            }
-          ],
-          components: [
-            {
-              type: 1,
-              components: [
-                {
-                  type: 2,
-                  style: 2,
-                  label: "Hug Back",
-                  custom_id: "used",
-                  disabled: true,
-                  emoji: {
-                    name: "Heart",
-                    id: "1396919562645143583"
-                  }
-                }
-              ]
             }
           ],
           allowed_mentions: {
