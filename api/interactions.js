@@ -46,7 +46,6 @@ const commands = [
 ];
 
 export default async function handler(req, res) {
-
   if (req.method !== "POST") {
     return res.status(405).end();
   }
@@ -55,7 +54,6 @@ export default async function handler(req, res) {
   const timestamp = req.headers["x-signature-timestamp"];
 
   let rawBody = "";
-
   await new Promise((resolve) => {
     req.on("data", chunk => rawBody += chunk);
     req.on("end", resolve);
@@ -78,12 +76,10 @@ export default async function handler(req, res) {
   }
 
   if (body.type === 2) {
-
     const name = body.data.name;
     const options = body.data.options || [];
 
     if (name === "help") {
-
       return res.status(200).json({
         type: 4,
         data: {
@@ -99,11 +95,9 @@ export default async function handler(req, res) {
           ]
         }
       });
-
     }
 
     if (name === "status") {
-
       const interactionTime = Number((BigInt(body.id) >> 22n) + 1420070400000n);
       const latency = Date.now() - interactionTime;
       const heartbeat = Math.floor(Math.random() * (135 - 115) + 115);
@@ -119,11 +113,9 @@ export default async function handler(req, res) {
           ]
         }
       });
-
     }
 
     if (name === "userinfo") {
-
       const userId = options[0].value;
       const user = body.data.resolved.users[userId];
       const member = body.data.resolved.members?.[userId];
@@ -174,11 +166,9 @@ export default async function handler(req, res) {
           ]
         }
       });
-
     }
 
     if (name === "hug") {
-
       const targetId = options[0].value;
       const authorId = body.member?.user?.id || body.user.id;
 
@@ -219,15 +209,11 @@ export default async function handler(req, res) {
           }
         }
       });
-
     }
-
   }
 
   if (body.type === 3) {
-
     if (body.data.custom_id.startsWith("hugback_")) {
-
       const parts = body.data.custom_id.split("_");
       const targetId = parts[1];
       const originalAuthorId = parts[2];
@@ -242,6 +228,8 @@ export default async function handler(req, res) {
           }
         });
       }
+
+      res.status(200).json({ type: 6 });
 
       const gif = await fetch("https://api.waifu.pics/sfw/hug");
       const data = await gif.json();
@@ -266,13 +254,8 @@ export default async function handler(req, res) {
           }
         })
       });
-
-      return res.status(200).json({
-        type: 6
-      });
-
+      return;
     }
-
   }
 
   return res.status(200).json({
@@ -281,5 +264,4 @@ export default async function handler(req, res) {
       content: "Unknown command"
     }
   });
-
 }
