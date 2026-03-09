@@ -77,14 +77,10 @@ export default async function handler(req, res) {
     return res.status(200).json({ type: 1 });
   }
 
-  /* ---------------- COMMANDS ---------------- */
-
   if (body.type === 2) {
 
     const name = body.data.name;
     const options = body.data.options || [];
-
-    /* HELP */
 
     if (name === "help") {
 
@@ -104,8 +100,6 @@ export default async function handler(req, res) {
 
     }
 
-    /* STATUS */
-
     if (name === "status") {
 
       const interactionTime = Number((BigInt(body.id) >> 22n) + 1420070400000n);
@@ -124,8 +118,6 @@ export default async function handler(req, res) {
 
     }
 
-    /* USERINFO */
-
     if (name === "userinfo") {
 
       const userId = options[0].value;
@@ -134,7 +126,7 @@ export default async function handler(req, res) {
 
       const createdAt = new Date(Number((BigInt(userId) >> 22n) + 1420070400000n));
       const daysAgo = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
-
+      
       const parts = createdAt.toUTCString().split(' ');
       const formattedDate = `${parts[2]} ${parts[1]} ${parts[3]}`;
       const formattedTime = `${parts[4]} GMT`;
@@ -151,9 +143,7 @@ export default async function handler(req, res) {
           embeds: [{
             color: 0x313338,
             author: {
-              name: user.discriminator !== "0"
-                ? `${user.username}#${user.discriminator}`
-                : user.username,
+              name: user.discriminator !== "0" ? `${user.username}#${user.discriminator}` : user.username,
               icon_url: avatarUrl
             },
             fields: [
@@ -176,8 +166,6 @@ export default async function handler(req, res) {
       });
 
     }
-
-    /* HUG COMMAND */
 
     if (name === "hug") {
 
@@ -207,11 +195,7 @@ export default async function handler(req, res) {
                   type: 2,
                   style: 2,
                   label: "Hug Back",
-                  custom_id: `hugback_${authorId}`,
-                  emoji: {
-                    name: "Heart",
-                    id: "1396919562645143583"
-                  }
+                  custom_id: `hugback_${targetId}_${authorId}`
                 }
               ]
             }
@@ -226,22 +210,32 @@ export default async function handler(req, res) {
 
   }
 
-  /* BUTTON INTERACTION */
-
   if (body.type === 3) {
 
     if (body.data.custom_id.startsWith("hugback_")) {
 
-      const targetId = body.data.custom_id.split("_")[1];
-      const authorId = body.member?.user?.id || body.user.id;
+      const parts = body.data.custom_id.split("_");
+      const targetId = parts[1];
+      const originalAuthorId = parts[2];
+      const clickerId = body.member?.user?.id || body.user.id;
+
+      if (clickerId !== targetId) {
+        return res.status(200).json({
+          type: 4,
+          data: {
+            flags: 64,
+            content: "This hug wasn't meant for you."
+          }
+        });
+      }
 
       const gif = await fetch("https://api.waifu.pics/sfw/hug");
       const data = await gif.json();
 
       return res.status(200).json({
-        type: 4,
+        type: 7,
         data: {
-          content: `<@${authorId}> hugged <@${targetId}> back!`,
+          content: `<@${clickerId}> hugged <@${originalAuthorId}> back!`,
           embeds: [
             {
               color: 0xff7fb0,
@@ -250,8 +244,22 @@ export default async function handler(req, res) {
               }
             }
           ],
+          components: [
+            {
+              type: 1,
+              components: [
+                {
+                  type: 2,
+                  style: 2,
+                  label: "Hug Back",
+                  custom_id: "used",
+                  disabled: true
+                }
+              ]
+            }
+          ],
           allowed_mentions: {
-            users: [authorId, targetId]
+            users: [clickerId, originalAuthorId]
           }
         }
       });
