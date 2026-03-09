@@ -7,7 +7,43 @@ export const config = {
 };
 
 const APP_ID = process.env.APP_ID;
+const BOT_TOKEN = process.env.BOT_TOKEN;
 const PUBLIC_KEY = process.env.PUBLIC_KEY;
+
+const commands = [
+  {
+    name: "help",
+    description: "Get information about bot"
+  },
+  {
+    name: "status",
+    description: "View sushi bot status"
+  },
+  {
+    name: "userinfo",
+    description: "Show information about a user",
+    options: [
+      {
+        name: "user",
+        description: "The user to lookup",
+        type: 6,
+        required: true
+      }
+    ]
+  },
+  {
+    name: "hug",
+    description: "Send a warm hug to another user",
+    options: [
+      {
+        name: "user",
+        description: "User to hug",
+        type: 6,
+        required: true
+      }
+    ]
+  }
+];
 
 export default async function handler(req, res) {
 
@@ -37,12 +73,12 @@ export default async function handler(req, res) {
 
   const body = JSON.parse(rawBody);
 
-  /* Ping */
   if (body.type === 1) {
     return res.status(200).json({ type: 1 });
   }
 
-  /* Slash Commands */
+  /* ---------------- COMMANDS ---------------- */
+
   if (body.type === 2) {
 
     const name = body.data.name;
@@ -51,6 +87,7 @@ export default async function handler(req, res) {
     /* HELP */
 
     if (name === "help") {
+
       return res.status(200).json({
         type: 4,
         data: {
@@ -64,6 +101,7 @@ export default async function handler(req, res) {
           }]
         }
       });
+
     }
 
     /* STATUS */
@@ -83,6 +121,7 @@ export default async function handler(req, res) {
           }]
         }
       });
+
     }
 
     /* USERINFO */
@@ -96,7 +135,7 @@ export default async function handler(req, res) {
       const createdAt = new Date(Number((BigInt(userId) >> 22n) + 1420070400000n));
       const daysAgo = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
 
-      const parts = createdAt.toUTCString().split(" ");
+      const parts = createdAt.toUTCString().split(' ');
       const formattedDate = `${parts[2]} ${parts[1]} ${parts[3]}`;
       const formattedTime = `${parts[4]} GMT`;
 
@@ -104,7 +143,7 @@ export default async function handler(req, res) {
         ? `https://cdn.discordapp.com/avatars/${userId}/${user.avatar}.png`
         : `https://cdn.discordapp.com/embed/avatars/${Number(user.discriminator || 0) % 5}.png`;
 
-      const accountType = user.bot ? "Bot" : user.system ? "System" : "User";
+      const accountType = user.bot ? 'Bot' : user.system ? 'System' : 'User';
 
       return res.status(200).json({
         type: 4,
@@ -119,27 +158,26 @@ export default async function handler(req, res) {
             },
             fields: [
               {
-                name: "User ID:",
+                name: 'User ID:',
                 value: `\`\`\`\n${userId}\n\`\`\``
               },
               {
-                name: "Created at:",
+                name: 'Created at:',
                 value: `\`\`\`\n- ${daysAgo} days ago\n- ${formattedDate}\n- ${formattedTime}\n\`\`\``
               },
               {
-                name: "Account Type:",
+                name: 'Account Type:',
                 value: `\`\`\`\n${accountType}\n\`\`\``
               }
             ],
-            footer: !member
-              ? { text: "The user you are inspecting is not on this server." }
-              : undefined
+            footer: !member ? { text: 'The user you are inspecting is not on this server.' } : undefined
           }]
         }
       });
+
     }
 
-    /* HUG */
+    /* HUG COMMAND */
 
     if (name === "hug") {
 
@@ -183,7 +221,9 @@ export default async function handler(req, res) {
           }
         }
       });
+
     }
+
   }
 
   /* BUTTON INTERACTION */
@@ -215,7 +255,9 @@ export default async function handler(req, res) {
           }
         }
       });
+
     }
+
   }
 
   return res.status(200).json({
@@ -224,4 +266,5 @@ export default async function handler(req, res) {
       content: "Unknown command"
     }
   });
+
 }
