@@ -45,17 +45,6 @@ const commands = [
   }
 ];
 
-async function registerCommands() {
-  await fetch(`https://discord.com/api/v10/applications/${APP_ID}/commands`, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bot ${BOT_TOKEN}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(commands)
-  });
-}
-
 export default async function handler(req, res) {
 
   if (req.method !== "POST") {
@@ -68,9 +57,7 @@ export default async function handler(req, res) {
   let rawBody = "";
 
   await new Promise((resolve) => {
-    req.on("data", chunk => {
-      rawBody += chunk;
-    });
+    req.on("data", chunk => rawBody += chunk);
     req.on("end", resolve);
   });
 
@@ -101,20 +88,18 @@ export default async function handler(req, res) {
         type: 4,
         data: {
           flags: 64,
-          embeds: [
-            {
-              color: 0x6266ec,
-              description:
-                "You can find a list of commands here: https://sreeman.io/commands\n" +
-                "Join the server if you still have questions: https://discord.gg/QkvahZ4yW3\n\n" +
-                "The privacy policy can be found here: https://sreeman.io/privacy"
-            }
-          ]
+          embeds: [{
+            color: 0x6266ec,
+            description:
+              "You can find a list of commands here: https://sreeman.io/commands\n" +
+              "Join the server if you still have questions: https://discord.gg/QkvahZ4yW3\n\n" +
+              "The privacy policy can be found here: https://sreeman.io/privacy"
+          }]
         }
       });
 
     }
-
+    
     if (name === "status") {
 
       const interactionTime = Number((BigInt(body.id) >> 22n) + 1420070400000n);
@@ -124,12 +109,10 @@ export default async function handler(req, res) {
       return res.status(200).json({
         type: 4,
         data: {
-          embeds: [
-            {
-              color: 0x6ed683,
-              description: `Heartbeat: \`${heartbeat}ms\`\nLatency: \`${latency}ms\``
-            }
-          ]
+          embeds: [{
+            color: 0x6ed683,
+            description: `Heartbeat: \`${heartbeat}ms\`\nLatency: \`${latency}ms\``
+          }]
         }
       });
 
@@ -142,46 +125,45 @@ export default async function handler(req, res) {
       const member = body.data.resolved.members?.[userId];
 
       const createdAt = new Date(Number((BigInt(userId) >> 22n) + 1420070400000n));
-      const daysAgo = Math.floor((Date.now() - createdAt.getTime()) / 86400000);
+      const daysAgo = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+
+      const parts = createdAt.toUTCString().split(' ');
+      const formattedDate = `${parts[2]} ${parts[1]} ${parts[3]}`;
+      const formattedTime = `${parts[4]} GMT`;
 
       const avatarUrl = user.avatar
         ? `https://cdn.discordapp.com/avatars/${userId}/${user.avatar}.png`
-        : `https://cdn.discordapp.com/embed/avatars/0.png`;
+        : `https://cdn.discordapp.com/embed/avatars/${Number(user.discriminator || 0) % 5}.png`;
 
-      const accountType = user.bot ? "Bot" : user.system ? "System" : "User";
+      const accountType = user.bot ? 'Bot' : user.system ? 'System' : 'User';
 
       return res.status(200).json({
         type: 4,
         data: {
-          embeds: [
-            {
-              color: 0x313338,
-              author: {
-                name:
-                  user.discriminator !== "0"
-                    ? `${user.username}#${user.discriminator}`
-                    : user.username,
-                icon_url: avatarUrl
+          embeds: [{
+            color: 0x313338,
+            author: {
+              name: user.discriminator !== "0"
+                ? `${user.username}#${user.discriminator}`
+                : user.username,
+              icon_url: avatarUrl
+            },
+            fields: [
+              {
+                name: 'User ID:',
+                value: `\`\`\`\n${userId}\n\`\`\``
               },
-              fields: [
-                {
-                  name: "User ID",
-                  value: `\`\`\`\n${userId}\n\`\`\``
-                },
-                {
-                  name: "Account Created",
-                  value: `\`\`\`\n${daysAgo} days ago\n${createdAt.toUTCString()}\n\`\`\``
-                },
-                {
-                  name: "Account Type",
-                  value: `\`\`\`\n${accountType}\n\`\`\``
-                }
-              ],
-              footer: !member
-                ? { text: "The user you are inspecting is not on this server." }
-                : undefined
-            }
-          ]
+              {
+                name: 'Created at:',
+                value: `\`\`\`\n- ${daysAgo} days ago\n- ${formattedDate}\n- ${formattedTime}\n\`\`\``
+              },
+              {
+                name: 'Account Type:',
+                value: `\`\`\`\n${accountType}\n\`\`\``
+              }
+            ],
+            footer: !member ? { text: 'The user you are inspecting is not on this server.' } : undefined
+          }]
         }
       });
 
@@ -189,43 +171,78 @@ export default async function handler(req, res) {
 
     if (name === "hug") {
 
-      try {
+      const targetId = options[0].value;
+      const authorId = body.member?.user?.id || body.user.id;
 
-        const response = await fetch("https://api.waifu.pics/sfw/hug");
-        const json = await response.json();
+      const gif = await fetch("https://api.waifu.pics/sfw/hug");
+      const data = await gif.json();
 
-        const targetId = options[0].value;
-        const authorId = body.member?.user?.id || body.user.id;
-
-        return res.status(200).json({
-          type: 4,
-          data: {
-            content: `<@${authorId}> hugged <@${targetId}>`,
-            embeds: [
-              {
-                color: 0xff7fb0,
-                image: {
-                  url: json.url
-                }
+      return res.status(200).json({
+        type: 4,
+        data: {
+          content: `<@${authorId}> hugged <@${targetId}>`,
+          embeds: [
+            {
+              color: 0xff7fb0,
+              image: {
+                url: data.url
               }
-            ],
-            allowed_mentions: {
-              users: [authorId, targetId]
             }
+          ],
+          components: [
+            {
+              type: 1,
+              components: [
+                {
+                  type: 2,
+                  style: 2,
+                  label: "Hug Back",
+                  custom_id: `hugback_${authorId}`,
+                  emoji: {
+                    name: "Heart",
+                    id: "1396919562645143583"
+                  }
+                }
+              ]
+            }
+          ],
+          allowed_mentions: {
+            users: [authorId, targetId]
           }
-        });
+        }
+      });
 
-      } catch {
+    }
 
-        return res.status(200).json({
-          type: 4,
-          data: {
-            content: "Failed to fetch hug gif.",
-            flags: 64
+  }
+
+  if (body.type === 3) {
+
+    if (body.data.custom_id.startsWith("hugback_")) {
+
+      const targetId = body.data.custom_id.split("_")[1];
+      const authorId = body.member?.user?.id || body.user.id;
+
+      const gif = await fetch("https://api.waifu.pics/sfw/hug");
+      const data = await gif.json();
+
+      return res.status(200).json({
+        type: 4,
+        data: {
+          content: `<@${authorId}> hugged <@${targetId}> back!`,
+          embeds: [
+            {
+              color: 0xff7fb0,
+              image: {
+                url: data.url
+              }
+            }
+          ],
+          allowed_mentions: {
+            users: [authorId, targetId]
           }
-        });
-
-      }
+        }
+      });
 
     }
 
@@ -234,8 +251,7 @@ export default async function handler(req, res) {
   return res.status(200).json({
     type: 4,
     data: {
-      content: "Unknown command",
-      flags: 64
+      content: "Unknown command"
     }
   });
 
