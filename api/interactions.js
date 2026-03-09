@@ -30,6 +30,10 @@ const commands = [
         required: true
       }
     ]
+  },
+  {
+    name: "hug",
+    description: "Send a random hug gif"
   }
 ];
 
@@ -81,7 +85,6 @@ export default async function handler(req, res) {
 
   if (body.type === 2) {
     const { name, options } = body.data;
-    const guildId = body.guild_id;
 
     if (name === "help") {
       return res.status(200).json({
@@ -90,9 +93,10 @@ export default async function handler(req, res) {
           flags: 64,
           embeds: [{
             color: 0x6266ec,
-            description: "You can find a list of commands here: https://sreeman.io/commands\n" +
-                         "Join the server if you still have questions: https://discord.gg/QkvahZ4yW3\n\n" +
-                         "The privacy policy can be found here: https://sreeman.io/privacy"
+            description:
+              "You can find a list of commands here: https://sreeman.io/commands\n" +
+              "Join the server if you still have questions: https://discord.gg/QkvahZ4yW3\n\n" +
+              "The privacy policy can be found here: https://sreeman.io/privacy"
           }]
         }
       });
@@ -138,7 +142,9 @@ export default async function handler(req, res) {
           embeds: [{
             color: 0x313338,
             author: {
-              name: user.discriminator !== "0" ? `${user.username}#${user.discriminator}` : user.username,
+              name: user.discriminator !== "0"
+                ? `${user.username}#${user.discriminator}`
+                : user.username,
               icon_url: avatarUrl
             },
             fields: [
@@ -155,10 +161,45 @@ export default async function handler(req, res) {
                 value: `\`\`\`\n${accountType}\n\`\`\``
               }
             ],
-            footer: !member ? { text: 'The user you are inspecting is not on this server.' } : undefined
+            footer: !member
+              ? { text: 'The user you are inspecting is not on this server.' }
+              : undefined
           }]
         }
       });
+    }
+
+    if (name === "hug") {
+      try {
+
+        const response = await fetch("https://api.waifu.pics/sfw/hug");
+        const json = await response.json();
+
+        return res.status(200).json({
+          type: 4,
+          data: {
+            embeds: [
+              {
+                color: 0xff7fb0,
+                image: {
+                  url: json.url
+                }
+              }
+            ]
+          }
+        });
+
+      } catch (error) {
+
+        return res.status(200).json({
+          type: 4,
+          data: {
+            content: "Could not fetch a hug gif",
+            flags: 64
+          }
+        });
+
+      }
     }
   }
 
