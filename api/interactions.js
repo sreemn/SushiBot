@@ -88,13 +88,15 @@ export default async function handler(req, res) {
         type: 4,
         data: {
           flags: 64,
-          embeds: [{
-            color: 0x6266ec,
-            description:
-              "You can find a list of commands here: https://sreeman.io/commands\n" +
-              "Join the server if you still have questions: https://discord.gg/QkvahZ4yW3\n\n" +
-              "The privacy policy can be found here: https://sreeman.io/privacy"
-          }]
+          embeds: [
+            {
+              color: 0x6266ec,
+              description:
+                "You can find a list of commands here: https://sreeman.io/commands\n" +
+                "Join the server if you still have questions: https://discord.gg/QkvahZ4yW3\n\n" +
+                "The privacy policy can be found here: https://sreeman.io/privacy"
+            }
+          ]
         }
       });
 
@@ -109,10 +111,12 @@ export default async function handler(req, res) {
       return res.status(200).json({
         type: 4,
         data: {
-          embeds: [{
-            color: 0x6ed683,
-            description: `Heartbeat: \`${heartbeat}ms\`\nLatency: \`${latency}ms\``
-          }]
+          embeds: [
+            {
+              color: 0x6ed683,
+              description: `Heartbeat: \`${heartbeat}ms\`\nLatency: \`${latency}ms\``
+            }
+          ]
         }
       });
 
@@ -126,8 +130,8 @@ export default async function handler(req, res) {
 
       const createdAt = new Date(Number((BigInt(userId) >> 22n) + 1420070400000n));
       const daysAgo = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
-      
-      const parts = createdAt.toUTCString().split(' ');
+
+      const parts = createdAt.toUTCString().split(" ");
       const formattedDate = `${parts[2]} ${parts[1]} ${parts[3]}`;
       const formattedTime = `${parts[4]} GMT`;
 
@@ -135,33 +139,39 @@ export default async function handler(req, res) {
         ? `https://cdn.discordapp.com/avatars/${userId}/${user.avatar}.png`
         : `https://cdn.discordapp.com/embed/avatars/${Number(user.discriminator || 0) % 5}.png`;
 
-      const accountType = user.bot ? 'Bot' : user.system ? 'System' : 'User';
+      const accountType = user.bot ? "Bot" : user.system ? "System" : "User";
 
       return res.status(200).json({
         type: 4,
         data: {
-          embeds: [{
-            color: 0x313338,
-            author: {
-              name: user.discriminator !== "0" ? `${user.username}#${user.discriminator}` : user.username,
-              icon_url: avatarUrl
-            },
-            fields: [
-              {
-                name: 'User ID:',
-                value: `\`\`\`\n${userId}\n\`\`\``
+          embeds: [
+            {
+              color: 0x313338,
+              author: {
+                name: user.discriminator !== "0"
+                  ? `${user.username}#${user.discriminator}`
+                  : user.username,
+                icon_url: avatarUrl
               },
-              {
-                name: 'Created at:',
-                value: `\`\`\`\n- ${daysAgo} days ago\n- ${formattedDate}\n- ${formattedTime}\n\`\`\``
-              },
-              {
-                name: 'Account Type:',
-                value: `\`\`\`\n${accountType}\n\`\`\``
-              }
-            ],
-            footer: !member ? { text: 'The user you are inspecting is not on this server.' } : undefined
-          }]
+              fields: [
+                {
+                  name: "User ID:",
+                  value: `\`\`\`\n${userId}\n\`\`\``
+                },
+                {
+                  name: "Created at:",
+                  value: `\`\`\`\n- ${daysAgo} days ago\n- ${formattedDate}\n- ${formattedTime}\n\`\`\``
+                },
+                {
+                  name: "Account Type:",
+                  value: `\`\`\`\n${accountType}\n\`\`\``
+                }
+              ],
+              footer: !member
+                ? { text: "The user you are inspecting is not on this server." }
+                : undefined
+            }
+          ]
         }
       });
 
@@ -236,9 +246,12 @@ export default async function handler(req, res) {
       const gif = await fetch("https://api.waifu.pics/sfw/hug");
       const data = await gif.json();
 
-      return res.status(200).json({
-        type: 4,
-        data: {
+      await fetch(`https://discord.com/api/v10/webhooks/${APP_ID}/${body.token}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
           content: `<@${clickerId}> hugged <@${originalAuthorId}> back!`,
           embeds: [
             {
@@ -251,7 +264,11 @@ export default async function handler(req, res) {
           allowed_mentions: {
             users: [clickerId, originalAuthorId]
           }
-        }
+        })
+      });
+
+      return res.status(200).json({
+        type: 6
       });
 
     }
