@@ -90,9 +90,9 @@ export default async function handler(req, res) {
           flags: 64,
           embeds: [{
             color: 0x6266ec,
-            description: "You can find a list of commands here: https://sushibot.co/commands\n" +
+            description: "You can find a list of commands here: https://sreeman.io/commands\n" +
                          "Join the server if you still have questions: https://discord.gg/QkvahZ4yW3\n\n" +
-                         "The privacy policy can be found here: https://sushibot.co/privacy"
+                         "The privacy policy can be found here: https://sreeman.io/privacy"
           }]
         }
       });
