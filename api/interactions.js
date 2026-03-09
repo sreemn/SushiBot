@@ -34,7 +34,6 @@ const commands = [
   {
     name: "hug",
     description: "Hug a friend",
-    type: 1,
     options: [
       {
         name: "user",
@@ -43,7 +42,7 @@ const commands = [
         required: true
       }
     ]
-  },
+  }
 ];
 
 async function registerCommands() {
@@ -66,14 +65,13 @@ export default async function handler(req, res) {
   const signature = req.headers["x-signature-ed25519"];
   const timestamp = req.headers["x-signature-timestamp"];
 
-  const rawBody = await new Promise((resolve) => {
-    let data = "";
+  let rawBody = "";
+
+  await new Promise((resolve) => {
     req.on("data", chunk => {
-      data += chunk;
+      rawBody += chunk;
     });
-    req.on("end", () => {
-      resolve(data);
-    });
+    req.on("end", resolve);
   });
 
   const isVerified = nacl.sign.detached.verify(
@@ -93,25 +91,30 @@ export default async function handler(req, res) {
   }
 
   if (body.type === 2) {
-    const { name, options } = body.data;
+
+    const name = body.data.name;
+    const options = body.data.options || [];
 
     if (name === "help") {
       return res.status(200).json({
         type: 4,
         data: {
           flags: 64,
-          embeds: [{
-            color: 0x6266ec,
-            description:
-              "You can find a list of commands here: https://sreeman.io/commands\n" +
-              "Join the server if you still have questions: https://discord.gg/QkvahZ4yW3\n\n" +
-              "The privacy policy can be found here: https://sreeman.io/privacy"
-          }]
+          embeds: [
+            {
+              color: 0x6266ec,
+              description:
+                "You can find a list of commands here: https://sreeman.io/commands\n" +
+                "Join the server if you still have questions: https://discord.gg/QkvahZ4yW3\n\n" +
+                "The privacy policy can be found here: https://sreeman.io/privacy"
+            }
+          ]
         }
       });
     }
 
     if (name === "status") {
+
       const interactionTime = Number((BigInt(body.id) >> 22n) + 1420070400000n);
       const latency = Date.now() - interactionTime;
       const heartbeat = Math.floor(Math.random() * (135 - 115) + 115);
@@ -119,117 +122,105 @@ export default async function handler(req, res) {
       return res.status(200).json({
         type: 4,
         data: {
-          embeds: [{
-            color: 0x6ed683,
-            description: `Heartbeat: \`${heartbeat}ms\`\nLatency: \`${latency}ms\``
-          }]
+          embeds: [
+            {
+              color: 0x6ed683,
+              description: `Heartbeat: \`${heartbeat}ms\`\nLatency: \`${latency}ms\``
+            }
+          ]
         }
       });
     }
 
     if (name === "userinfo") {
+
       const userId = options[0].value;
       const user = body.data.resolved.users[userId];
       const member = body.data.resolved.members?.[userId];
 
       const createdAt = new Date(Number((BigInt(userId) >> 22n) + 1420070400000n));
-      const daysAgo = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
-      
-      const parts = createdAt.toUTCString().split(' ');
-      const formattedDate = `${parts[2]} ${parts[1]} ${parts[3]}`;
-      const formattedTime = `${parts[4]} GMT`;
+      const daysAgo = Math.floor((Date.now() - createdAt.getTime()) / 86400000);
 
       const avatarUrl = user.avatar
         ? `https://cdn.discordapp.com/avatars/${userId}/${user.avatar}.png`
-        : `https://cdn.discordapp.com/embed/avatars/${Number(user.discriminator || 0) % 5}.png`;
+        : `https://cdn.discordapp.com/embed/avatars/0.png`;
 
-      const accountType = user.bot ? 'Bot' : user.system ? 'System' : 'User';
+      const accountType = user.bot ? "Bot" : user.system ? "System" : "User";
 
       return res.status(200).json({
         type: 4,
         data: {
-          embeds: [{
-            color: 0x313338,
-            author: {
-              name: user.discriminator !== "0"
-                ? `${user.username}#${user.discriminator}`
-                : user.username,
-              icon_url: avatarUrl
-            },
-            fields: [
-              {
-                name: 'User ID:',
-                value: `\`\`\`\n${userId}\n\`\`\``
+          embeds: [
+            {
+              color: 0x313338,
+              author: {
+                name:
+                  user.discriminator !== "0"
+                    ? `${user.username}#${user.discriminator}`
+                    : user.username,
+                icon_url: avatarUrl
               },
-              {
-                name: 'Created at:',
-                value: `\`\`\`\n- ${daysAgo} days ago\n- ${formattedDate}\n- ${formattedTime}\n\`\`\``
-              },
-              {
-                name: 'Account Type:',
-                value: `\`\`\`\n${accountType}\n\`\`\``
-              }
-            ],
-            footer: !member
-              ? { text: 'The user you are inspecting is not on this server.' }
-              : undefined
-          }]
+              fields: [
+                {
+                  name: "User ID",
+                  value: `\`\`\`\n${userId}\n\`\`\``
+                },
+                {
+                  name: "Account Created",
+                  value: `\`\`\`\n${daysAgo} days ago\n${createdAt.toUTCString()}\n\`\`\``
+                },
+                {
+                  name: "Account Type",
+                  value: `\`\`\`\n${accountType}\n\`\`\``
+                }
+              ],
+              footer: !member
+                ? { text: "The user you are inspecting is not on this server." }
+                : undefined
+            }
+          ]
         }
       });
     }
 
     if (name === "hug") {
 
-  const userId = options[0].value;
-  const target = body.data.resolved.users[userId];
-  const author = body.member?.user || body.user;
+      try {
 
-  try {
+        const response = await fetch("https://api.waifu.pics/sfw/hug");
+        const json = await response.json();
 
-    const response = await fetch("https://api.waifu.pics/sfw/hug");
-    const json = await response.json();
+        const userId = options[0].value;
+        const target = body.data.resolved.users[userId];
+        const author = body.member?.user || body.user;
 
-    return res.status(200).json({
-      type: 4,
-      data: {
-        embeds: [
-          {
-            color: 0xff7fb0,
-            description: `**${author.username} hugged ${target.username}**`,
-            image: {
-              url: json.url
-            }
-          }
-        ],
-        components: [
-          {
-            type: 1,
-            components: [
+        return res.status(200).json({
+          type: 4,
+          data: {
+            embeds: [
               {
-                type: 2,
-                style: 5,
-                label: "Open GIF",
-                url: json.url
+                color: 0xff7fb0,
+                description: `**${author.username} hugged ${target.username}**`,
+                image: {
+                  url: json.url
+                }
               }
             ]
           }
-        ]
+        });
+
+      } catch {
+
+        return res.status(200).json({
+          type: 4,
+          data: {
+            content: "Failed to fetch hug gif.",
+            flags: 64
+          }
+        });
       }
-    });
-
-  } catch (err) {
-
-    return res.status(200).json({
-      type: 4,
-      data: {
-        content: "Failed to fetch hug gif.",
-        flags: 64
-      }
-    });
-
+    }
   }
-
-}
 
   return res.status(200).json({
     type: 4,
