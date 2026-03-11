@@ -6,44 +6,23 @@ export const config = {
 };
 
 const APP_ID = process.env.APP_ID;
-const BOT_TOKEN = process.env.BOT_TOKEN;
 const PUBLIC_KEY = process.env.PUBLIC_KEY;
 
-async function sendFollowup(token, data) {
-  await fetch(`https://discord.com/api/v10/webhooks/${APP_ID}/${token}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(data)
-  });
-}
-
-async function editOriginal(token, data) {
-  await fetch(
-    `https://discord.com/api/v10/webhooks/${APP_ID}/${token}/messages/@original`,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(data)
-    }
-  );
-}
-
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).end();
+
+  if (req.method !== "POST") {
+    return res.status(405).end();
+  }
 
   const signature = req.headers["x-signature-ed25519"];
   const timestamp = req.headers["x-signature-timestamp"];
 
-  let rawBody = "";
-  await new Promise((resolve) => {
-    req.on("data", (chunk) => (rawBody += chunk));
-    req.on("end", resolve);
-  });
+  /* FAST BODY READ */
+  const chunks = [];
+  for await (const chunk of req) chunks.push(chunk);
+  const rawBody = Buffer.concat(chunks).toString("utf8");
 
+  /* SIGNATURE VERIFY */
   const isVerified = nacl.sign.detached.verify(
     Buffer.from(timestamp + rawBody),
     Buffer.from(signature, "hex"),
@@ -56,98 +35,99 @@ export default async function handler(req, res) {
 
   const body = JSON.parse(rawBody);
 
+  /* PING */
   if (body.type === 1) {
     return res.status(200).json({ type: 1 });
   }
 
+  /* COMMANDS */
   if (body.type === 2) {
+
     const name = body.data.name;
     const options = body.data.options || [];
-    const token = body.token;
+    const user = body.member?.user || body.user;
 
+    /* HELP */
     if (name === "help") {
       return res.status(200).json({
         type: 4,
         data: {
           flags: 64,
-          embeds: [
-            {
-              color: 0x3a3b40,
-              description:
-                "If you're just looking for info about how the bot works, a command list or clarification about something - check the /about command.\n\n" +
-                "If that's not enough, [join our Discord server](https://discord.gg/QkvahZ4yW3) where you can find announcements and customer support for all of our bots."
-            }
-          ]
+          embeds: [{
+            color: 0x3a3b40,
+            description:
+              "If you're just looking for info about how the bot works, a command list or clarification about something - check the /about command.\n\n" +
+              "If that's not enough, [join our Discord server](https://discord.gg/QkvahZ4yW3)."
+          }]
         }
       });
     }
 
+    /* BALANCE */
     if (name === "balance") {
-      const user = body.member?.user || body.user;
+
       const username = user.username;
 
       return res.status(200).json({
         type: 4,
         data: {
           flags: 64,
-          embeds: [
-            {
-              color: 0xac78f3,
-              description: `${username}'s Balance: 0 <a:Coin:1481390637755400333>`
-            }
-          ]
+          embeds: [{
+            color: 0xac78f3,
+            description: `${username}'s Balance: 0 🪙`
+          }]
         }
       });
     }
 
+    /* HUG */
     if (name === "hug") {
-      const targetId = options[0].value;
-      const authorId = body.member?.user?.id || body.user.id;
 
-      res.status(200).json({ type: 5 });
+      const targetId = options?.[0]?.value;
+      const authorId = user.id;
 
-      const gif = await fetch("https://api.waifu.pics/sfw/hug");
-      const data = await gif.json();
+      /* fetch in parallel */
+      const gifPromise = fetch("https://api.waifu.pics/sfw/hug").then(r => r.json());
 
-      await editOriginal(token, {
-        content: `<@${authorId}> hugged <@${targetId}>`,
-        embeds: [
-          {
+      const data = await gifPromise;
+
+      return res.status(200).json({
+        type: 4,
+        data: {
+          content: `<@${authorId}> hugged <@${targetId}>`,
+          embeds: [{
             color: 0xff7fb0,
             image: { url: data.url }
-          }
-        ],
-        components: [
-          {
+          }],
+          components: [{
             type: 1,
-            components: [
-              {
-                type: 2,
-                style: 2,
-                label: "Hug Back",
-                custom_id: `hugback_${targetId}_${authorId}`,
-                emoji: {
-                  name: "Heart",
-                  id: "1396919562645143583"
-                }
+            components: [{
+              type: 2,
+              style: 2,
+              label: "Hug Back",
+              custom_id: `hugback_${targetId}_${authorId}`,
+              emoji: {
+                name: "Heart",
+                id: "1396919562645143583"
               }
-            ]
+            }]
+          }],
+          allowed_mentions: {
+            users: [authorId, targetId]
           }
-        ],
-        allowed_mentions: { users: [authorId, targetId] }
+        }
       });
-
-      return;
     }
   }
 
+  /* BUTTON INTERACTIONS */
   if (body.type === 3) {
-    const token = body.token;
 
-    if (body.data.custom_id.startsWith("hugback_")) {
-      const parts = body.data.custom_id.split("_");
-      const targetId = parts[1];
-      const originalAuthorId = parts[2];
+    const id = body.data.custom_id;
+
+    if (id.startsWith("hugback_")) {
+
+      const [ , targetId, originalAuthorId ] = id.split("_");
       const clickerId = body.member?.user?.id || body.user.id;
 
       if (clickerId !== targetId) {
@@ -160,44 +140,39 @@ export default async function handler(req, res) {
         });
       }
 
-      res.status(200).json({ type: 5 });
+      const data = await fetch("https://api.waifu.pics/sfw/hug").then(r => r.json());
 
-      const gif = await fetch("https://api.waifu.pics/sfw/hug");
-      const data = await gif.json();
-
-      await editOriginal(token, {
-        content: `<@${clickerId}> hugged <@${originalAuthorId}> back!`,
-        embeds: [
-          {
+      return res.status(200).json({
+        type: 7,
+        data: {
+          content: `<@${clickerId}> hugged <@${originalAuthorId}> back!`,
+          embeds: [{
             color: 0xff7fb0,
             image: { url: data.url }
-          }
-        ],
-        components: [
-          {
+          }],
+          components: [{
             type: 1,
-            components: [
-              {
-                type: 2,
-                style: 2,
-                label: "Hug Back",
-                disabled: true,
-                custom_id: `hugback_${targetId}_${originalAuthorId}`,
-                emoji: {
-                  name: "Heart",
-                  id: "1396919562645143583"
-                }
+            components: [{
+              type: 2,
+              style: 2,
+              label: "Hug Back",
+              disabled: true,
+              custom_id: id,
+              emoji: {
+                name: "Heart",
+                id: "1396919562645143583"
               }
-            ]
+            }]
+          }],
+          allowed_mentions: {
+            users: [clickerId, originalAuthorId]
           }
-        ],
-        allowed_mentions: { users: [clickerId, originalAuthorId] }
+        }
       });
-
-      return;
     }
   }
 
+  /* FALLBACK */
   return res.status(200).json({
     type: 4,
     data: { content: "Unknown command" }
