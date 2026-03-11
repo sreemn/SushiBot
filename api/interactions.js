@@ -1,4 +1,5 @@
 import nacl from "tweetnacl";
+import fetch from "node-fetch";
 
 export const config = {
   api: {
@@ -60,25 +61,26 @@ export default async function handler(req, res) {
         }
       });
     }
-if (name === "balance") {
-  const user = body.member?.user || body.user;
-  const username = user.username;
 
-  const balance = 0;
+    if (name === "balance") {
+      const user = body.member?.user || body.user;
+      const username = user.username;
 
-  return res.status(200).json({
-    type: 4,
-    data: {
-      flags: 64,
-      embeds: [
-        {
-          color: 0xac78f3,
-          description: `${username}'s Balance: ${balance} <a:Coin:1481390637755400333>`
+      const balance = 0;
+
+      return res.status(200).json({
+        type: 4,
+        data: {
+          flags: 64,
+          embeds: [
+            {
+              color: 0xac78f3,
+              description: `${username}'s Balance: ${balance} <a:Coin:1481390637755400333>`
+            }
+          ]
         }
-      ]
+      });
     }
-  });
-}
 
     if (name === "hug") {
       const targetId = options[0].value;
