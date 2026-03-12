@@ -1,7 +1,7 @@
 {
   "name": "sushi-auto-bot",
   "version": "1.0.0",
-  "description": "Auto posts sushi images to a Discord channel using Vercel Cron",
+  "description": "I'm a bot",
   "private": true,
   "type": "module",
   "engines": {
@@ -12,6 +12,7 @@
     "start": "vercel dev"
   },
   "dependencies": {
+    "mongodb": "^6.6.0",
     "tweetnacl": "^1.0.3"
   }
 }
