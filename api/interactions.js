@@ -95,7 +95,7 @@ export default async function handler(req, res) {
                 "[Support us on ko-fi](https://ko-fi.com/sremn)",
 
               footer: {
-                text: "This bot was made by <@783891446905438260>"
+                text: "This bot was made by sremn"
               }
             }
           ]
