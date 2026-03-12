@@ -1,5 +1,4 @@
 import nacl from "tweetnacl";
-import fetch from "node-fetch";
 import { MongoClient } from "mongodb";
 
 export const config = { api: { bodyParser: false } };
