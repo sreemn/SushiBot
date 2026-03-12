@@ -83,7 +83,7 @@ function rand(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-const MINE_COOLDOWN = 45000;
+const MINE_COOLDOWN = 15000;
 
 const GEM_TABLE = [
   { name: "🪨 Stone", coins: 3, chance: 30 },
