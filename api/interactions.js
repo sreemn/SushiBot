@@ -20,7 +20,7 @@ export default async function handler(req, res) {
 
   let rawBody = "";
   await new Promise((resolve) => {
-    req.on("data", chunk => rawBody += chunk);
+    req.on("data", chunk => (rawBody += chunk));
     req.on("end", resolve);
   });
 
@@ -52,7 +52,7 @@ export default async function handler(req, res) {
             {
               color: 0x3a3b40,
               description:
-                "If you're just looking for info about how the bot works, a command list or clarification about something - check the /about command.\n\n" +
+                "If you're just looking for info about how the bot works, a command list or clarification about something — check the **/about** command.\n\n" +
                 "If that's not enough, join our Discord server for announcements and support."
             }
           ]
@@ -89,9 +89,13 @@ export default async function handler(req, res) {
               color: 0x3a3b40,
               description:
                 "**How to Play**\n" +
-                "To start playing, an admin must use the commands available in this bot and set up your server's experience. Once configured, members can interact with the bot commands and enjoy the features together.",
+                "To start playing, an admin must use `/settings` and pick a name for your community. Then just take turns clicking the 🧩 button to keep playing!\n\n" +
+                "[Get Support](https://discord.gg/7HTxrWsH73) | " +
+                "[Invite The Bot](https://discord.com/oauth2/authorize?client_id=1480495380041961483&permissions=8&integration_type=0&scope=bot+applications.commands) | " +
+                "[Support us on ko-fi](https://ko-fi.com/sremn)",
+
               footer: {
-                text: "This bot was made by <@783891446905438260>."
+                text: "This bot was made by <@783891446905438260>"
               }
             }
           ]
