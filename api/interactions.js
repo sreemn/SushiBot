@@ -6,7 +6,7 @@ export const config = { api: { bodyParser: false } };
 const APP_ID = process.env.APP_ID;
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const PUBLIC_KEY = process.env.PUBLIC_KEY;
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.sushi_MONGODB_URI;
 
 let cachedClient = null;
 
