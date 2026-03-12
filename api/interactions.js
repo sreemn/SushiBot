@@ -46,9 +46,11 @@ async function safeBalanceUpdate(userId, amount) {
   const users = db.collection("users");
   const user = await users.findOne({ userId });
   if (!user) return;
+
   const newBalance = user.balance + amount;
   if (newBalance < 0) return;
   if (newBalance > 1000000000) return;
+
   await users.updateOne({ userId }, { $set: { balance: newBalance } });
 }
 
@@ -328,20 +330,26 @@ export default async function handler(req, res) {
 
     if (name === "leaderboard") {
       const db = await getDB();
+      const guildId = body.guild_id;
 
-      const users = await db.collection("users")
-        .find({})
-        .sort({ balance: -1 })
-        .limit(10)
-        .toArray();
+      const users = await db.collection("users").find({}).sort({ balance: -1 }).limit(50).toArray();
 
       const icons = ["🥇","🥈","🥉"];
       let rows = "";
+      let rankIndex = 0;
 
-      for (let i = 0; i < users.length; i++) {
-        const user = users[i];
-        const rank = i < 3 ? icons[i] : `#${i + 1}`;
+      for (const user of users) {
+        if (rankIndex >= 10) break;
+
+        const r = await fetch(`https://discord.com/api/v10/guilds/${guildId}/members/${user.userId}`, {
+          headers: { Authorization: `Bot ${BOT_TOKEN}` }
+        });
+
+        if (r.status !== 200) continue;
+
+        const rank = rankIndex < 3 ? icons[rankIndex] : `#${rankIndex + 1}`;
         rows += `${rank} - ${user.balance.toLocaleString()} 🪙 <@${user.userId}>\n`;
+        rankIndex++;
       }
 
       if (!rows) rows = "No players yet.";
@@ -351,32 +359,8 @@ export default async function handler(req, res) {
         data: {
           embeds: [{
             color: 0x3a3b40,
-            title: "Leaderboard",
+            title: "Server Leaderboard",
             description: rows.trim()
-          }]
-        }
-      });
-    }
-
-    if (name === "fuckoff") {
-      if (userId !== "783891446905438260") {
-        return res.status(200).json({ type: 4, data: { flags: 64, content: "Unauthorized" }});
-      }
-
-      const user = await getUser(userId, username);
-      const amountOption = body.data.options?.find(o => o.name === "amount");
-      const amount = amountOption ? parseInt(amountOption.value) : rand(500,5000);
-
-      await safeBalanceUpdate(userId, amount);
-
-      return res.status(200).json({
-        type: 4,
-        data: {
-          flags: 64,
-          embeds: [{
-            color: 0x57f287,
-            title: "Balance Updated",
-            description: `Added **${amount.toLocaleString()} 🪙**`
           }]
         }
       });
