@@ -49,7 +49,7 @@ async function safeBalanceUpdate(userId, amount) {
 
   const newBalance = user.balance + amount;
   if (newBalance < 0) return;
-  if (newBalance > 1000000000) return;
+  if (newBalance > 100000000) return;
 
   await users.updateOne({ userId }, { $set: { balance: newBalance } });
 }
@@ -361,30 +361,6 @@ export default async function handler(req, res) {
             color: 0x3a3b40,
             title: "Leaderboard",
             description: rows.trim()
-          }]
-        }
-      });
-    }
-
-    if (name === "fuckoff") {
-      if (userId !== "783891446905438260") {
-        return res.status(200).json({ type: 4, data: { flags: 64, content: "Unauthorized" }});
-      }
-
-      const user = await getUser(userId, username);
-      const amountOption = body.data.options?.find(o => o.name === "amount");
-      const amount = amountOption ? parseInt(amountOption.value) : rand(500,5000);
-
-      await safeBalanceUpdate(userId, amount);
-
-      return res.status(200).json({
-        type: 4,
-        data: {
-          flags: 64,
-          embeds: [{
-            color: 0x57f287,
-            title: "Balance Updated",
-            description: `Added **${amount.toLocaleString()} 🪙**`
           }]
         }
       });
