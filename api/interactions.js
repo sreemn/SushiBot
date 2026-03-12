@@ -2,20 +2,21 @@ import nacl from "tweetnacl";
 import fetch from "node-fetch";
 import { MongoClient } from "mongodb";
 
-export const config = {
-  api: { bodyParser: false }
-};
+export const config = { api: { bodyParser: false } };
 
 const APP_ID = process.env.APP_ID;
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const PUBLIC_KEY = process.env.PUBLIC_KEY;
-const MONGODB_URI = process.env.sushi_MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI;
 
 let cachedClient = null;
+
 async function getDB() {
   if (cachedClient) return cachedClient.db("discordbot");
-  cachedClient = await MongoClient.connect(MONGODB_URI);
-  return cachedClient.db("discordbot");
+  const client = new MongoClient(MONGODB_URI, { maxPoolSize: 10 });
+  await client.connect();
+  cachedClient = client;
+  return client.db("discordbot");
 }
 
 async function getUser(userId, username) {
@@ -32,29 +33,26 @@ async function getUser(userId, username) {
       createdAt: new Date()
     };
     await users.insertOne(user);
+  } else if (user.username !== username) {
+    await users.updateOne({ userId }, { $set: { username } });
   }
   return user;
 }
 
-async function updateBalance(userId, amount) {
+async function safeBalanceUpdate(userId, amount) {
   const db = await getDB();
-  await db.collection("users").updateOne({ userId }, { $inc: { balance: amount } });
+  const users = db.collection("users");
+  const user = await users.findOne({ userId });
+  if (!user) return;
+  const newBalance = user.balance + amount;
+  if (newBalance < 0) return;
+  if (newBalance > 100000000) return;
+  await users.updateOne({ userId }, { $set: { balance: newBalance } });
 }
 
 async function setField(userId, field, value) {
   const db = await getDB();
-  await db.collection("users").updateOne({ userId }, { $set: { [field]: value } });
-}
-
-let botAvatar = null;
-async function getBotAvatar() {
-  if (botAvatar) return botAvatar;
-  const res = await fetch("https://discord.com/api/v10/users/@me", {
-    headers: { Authorization: `Bot ${BOT_TOKEN}` }
-  });
-  const data = await res.json();
-  botAvatar = `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png`;
-  return botAvatar;
+  await db.collection("users").updateOne({ userId }, { $set: { [field]: value } }, { upsert: true });
 }
 
 function cooldownLeft(lastUsed, cooldownMs) {
@@ -77,14 +75,15 @@ function rand(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-const MINE_COOLDOWN = 45 * 1000;
+const MINE_COOLDOWN = 45000;
+
 const GEM_TABLE = [
-  { name: "🪨 Stone",    coins: 3,   chance: 30 },
-  { name: "🪵 Coal",     coins: 8,   chance: 25 },
-  { name: "🔩 Iron",     coins: 20,  chance: 20 },
-  { name: "🥇 Gold",     coins: 50,  chance: 13 },
-  { name: "💎 Diamond",  coins: 120, chance: 8  },
-  { name: "🌟 Stardust", coins: 300, chance: 4  },
+  { name: "🪨 Stone", coins: 3, chance: 30 },
+  { name: "🪵 Coal", coins: 8, chance: 25 },
+  { name: "🔩 Iron", coins: 20, chance: 20 },
+  { name: "🥇 Gold", coins: 50, chance: 13 },
+  { name: "💎 Diamond", coins: 120, chance: 8 },
+  { name: "🌟 Stardust", coins: 300, chance: 4 }
 ];
 
 function rollMine() {
@@ -97,7 +96,7 @@ function rollMine() {
   return GEM_TABLE[0];
 }
 
-function doGamble(bet) {
+function doGamble() {
   const roll = rand(1, 100);
   if (roll <= 10) return { result: "jackpot", multiplier: 5 };
   if (roll <= 45) return { result: "win", multiplier: 2 };
@@ -111,8 +110,8 @@ export default async function handler(req, res) {
   const timestamp = req.headers["x-signature-timestamp"];
 
   let rawBody = "";
-  await new Promise((resolve) => {
-    req.on("data", chunk => (rawBody += chunk));
+  await new Promise(resolve => {
+    req.on("data", chunk => rawBody += chunk);
     req.on("end", resolve);
   });
 
@@ -121,6 +120,7 @@ export default async function handler(req, res) {
     Buffer.from(signature, "hex"),
     Buffer.from(PUBLIC_KEY, "hex")
   );
+
   if (!isVerified) return res.status(401).send("Invalid request signature");
 
   const body = JSON.parse(rawBody);
@@ -138,25 +138,19 @@ export default async function handler(req, res) {
         type: 4,
         data: {
           flags: 64,
-          embeds: [{
-            color: 0x3a3b40,
-            description:
-              "If you're just looking for info about how the bot works, a command list or clarification about something — check the **/about** command.\n\n" +
-              "**Economy Commands:**\n" +
-              "`/balance` — Check your coins\n" +
-              "`/daily` — Claim daily coins\n" +
-              "`/top` — View the leaderboard\n\n" +
-              "**Game Commands:**\n" +
-              "`/mine` — Go mining ⛏️\n" +
-              "`/gamble <amount>` — Risk your coins 🎰\n\n" +
-              "If that's not enough, join our Discord server for announcements and support."
-          }]
+          embeds: [
+            {
+              color: 0x3a3b40,
+              description:
+                "If you're just looking for info about how the bot works, a command list or clarification about something — check the **/about** command.\n\n" +
+                "If that's not enough, join our Discord server for announcements and support."
+            }
+          ]
         }
       });
     }
 
     if (name === "about") {
-      const avatar = await getBotAvatar();
       return res.status(200).json({
         type: 4,
         data: {
@@ -164,11 +158,9 @@ export default async function handler(req, res) {
             color: 0x3a3b40,
             title: "How to Play",
             description:
-              "To start playing, an admin must use `/settings` and pick a name for your community. Then just take turns clicking the 🧩 button to keep playing!\n\n" +
-              "[Get Support](https://discord.gg/4rv6P8xF8U) | " +
-              "[Invite The Bot](https://discord.com/oauth2/authorize?client_id=1480495380041961483&permissions=8&integration_type=0&scope=bot+applications.commands) | " +
-              "[Support us on ko-fi](https://ko-fi.com/sremn)",
-            footer: { text: "This bot was made by sremn", icon_url: avatar }
+              "Use commands like `/daily`, `/mine`, `/gamble`, and `/balance` to play the economy game.\n\n" +
+              "[Support](https://discord.gg/4rv6P8xF8U) | " +
+              "[Invite](https://discord.com/oauth2/authorize?client_id=1480495380041961483&permissions=8&integration_type=0&scope=bot+applications.commands)"
           }]
         }
       });
@@ -190,8 +182,8 @@ export default async function handler(req, res) {
 
     if (name === "daily") {
       const user = await getUser(userId, username);
-      const DAILY_COOLDOWN = 24 * 60 * 60 * 1000;
-      const left = cooldownLeft(user.lastDaily, DAILY_COOLDOWN);
+      const cooldown = 86400000;
+      const left = cooldownLeft(user.lastDaily, cooldown);
 
       if (left > 0) {
         return res.status(200).json({
@@ -201,14 +193,14 @@ export default async function handler(req, res) {
             embeds: [{
               color: 0xff4444,
               title: "⏳ Daily Already Claimed",
-              description: `Come back in **${formatTime(left)}** to claim again.`
+              description: `Come back in **${formatTime(left)}**`
             }]
           }
         });
       }
 
       const reward = rand(150, 350);
-      await updateBalance(userId, reward);
+      await safeBalanceUpdate(userId, reward);
       await setField(userId, "lastDaily", new Date());
 
       return res.status(200).json({
@@ -217,9 +209,7 @@ export default async function handler(req, res) {
           embeds: [{
             color: 0x57f287,
             title: "📅 Daily Reward",
-            description:
-              `You claimed your daily reward of **${reward} 🪙**!\n` +
-              `New balance: **${(user.balance + reward).toLocaleString()} 🪙**`
+            description: `You received **${reward} 🪙**`
           }]
         }
       });
@@ -236,15 +226,15 @@ export default async function handler(req, res) {
             flags: 64,
             embeds: [{
               color: 0xff4444,
-              title: "⏳ Pickaxe is cooling down",
-              description: `You can mine again in **${formatTime(left)}**.`
+              title: "⏳ Pickaxe cooling down",
+              description: `Mine again in **${formatTime(left)}**`
             }]
           }
         });
       }
 
       const gem = rollMine();
-      await updateBalance(userId, gem.coins);
+      await safeBalanceUpdate(userId, gem.coins);
       await setField(userId, "lastMine", new Date());
 
       return res.status(200).json({
@@ -253,9 +243,7 @@ export default async function handler(req, res) {
           embeds: [{
             color: 0xfaa61a,
             title: "⛏️ Mining Results",
-            description:
-              `You dug up **${gem.name}** worth **${gem.coins} 🪙**!\n` +
-              `New balance: **${(user.balance + gem.coins).toLocaleString()} 🪙**`
+            description: `You found **${gem.name}** worth **${gem.coins} 🪙**`
           }]
         }
       });
@@ -263,70 +251,112 @@ export default async function handler(req, res) {
 
     if (name === "gamble") {
       const user = await getUser(userId, username);
-      const bet = parseInt(body.data.options?.find(o => o.name === "amount")?.value);
+
+      const betOption = body.data.options?.find(o => o.name === "amount");
+      const bet = betOption ? parseInt(betOption.value) : 0;
 
       if (!bet || bet <= 0) {
         return res.status(200).json({
           type: 4,
-          data: {
-            flags: 64,
-            embeds: [{ color: 0xff4444, description: "Please enter a valid bet amount." }]
-          }
+          data: { flags: 64, embeds: [{ color: 0xff4444, description: "Invalid bet amount" }] }
         });
       }
 
       if (bet > user.balance) {
         return res.status(200).json({
           type: 4,
-          data: {
-            flags: 64,
-            embeds: [{
-              color: 0xff4444,
-              description: `❌ You only have **${user.balance.toLocaleString()} 🪙**. You can't bet **${bet.toLocaleString()} 🪙**.`
-            }]
-          }
+          data: { flags: 64, embeds: [{ color: 0xff4444, description: "Not enough coins" }] }
         });
       }
 
-      const { result, multiplier } = doGamble(bet);
+      const { result, multiplier } = doGamble();
       const winnings = bet * multiplier;
-      const netChange = winnings - bet;
-      const newBal = user.balance + netChange;
+      const net = winnings - bet;
 
-      let colorHex, title, desc;
+      await safeBalanceUpdate(userId, net);
+
+      let title, color, desc;
+
       if (result === "jackpot") {
-        colorHex = 0xffd700;
-        title = "🌟 JACKPOT!";
-        desc = `You hit the jackpot! Your **${bet.toLocaleString()} 🪙** became **${winnings.toLocaleString()} 🪙**!\n**+${netChange.toLocaleString()} 🪙** | New balance: **${newBal.toLocaleString()} 🪙**`;
+        title = "🌟 JACKPOT";
+        color = 0xffd700;
+        desc = `You won **${winnings} 🪙**`;
       } else if (result === "win") {
-        colorHex = 0x57f287;
-        title = "🎰 You Won!";
-        desc = `You doubled your bet! **${bet.toLocaleString()} 🪙** → **${winnings.toLocaleString()} 🪙**\n**+${netChange.toLocaleString()} 🪙** | New balance: **${newBal.toLocaleString()} 🪙**`;
+        title = "🎰 You Won";
+        color = 0x57f287;
+        desc = `You doubled to **${winnings} 🪙**`;
       } else {
-        colorHex = 0xff4444;
-        title = "🎰 You Lost!";
-        desc = `Bad luck! You lost **${bet.toLocaleString()} 🪙**.\nNew balance: **${newBal.toLocaleString()} 🪙**`;
+        title = "🎰 You Lost";
+        color = 0xff4444;
+        desc = `Lost **${bet} 🪙**`;
       }
-
-      await updateBalance(userId, netChange);
 
       return res.status(200).json({
         type: 4,
-        data: { embeds: [{ color: colorHex, title, description: desc }] }
+        data: { embeds: [{ color, title, description: desc }] }
+      });
+    }
+
+    if (name === "give") {
+      const user = await getUser(userId, username);
+
+      const targetOption = body.data.options?.find(o => o.name === "user");
+      const amountOption = body.data.options?.find(o => o.name === "amount");
+
+      if (!targetOption || !amountOption) {
+        return res.status(200).json({
+          type: 4,
+          data: { flags: 64, embeds: [{ color: 0xff4444, description: "Invalid command usage" }] }
+        });
+      }
+
+      const targetId = targetOption.value;
+      const amount = parseInt(amountOption.value);
+
+      if (amount <= 0) {
+        return res.status(200).json({
+          type: 4,
+          data: { flags: 64, embeds: [{ color: 0xff4444, description: "Amount must be greater than 0" }] }
+        });
+      }
+
+      if (targetId === userId) {
+        return res.status(200).json({
+          type: 4,
+          data: { flags: 64, embeds: [{ color: 0xff4444, description: "You cannot give coins to yourself" }] }
+        });
+      }
+
+      if (amount > user.balance) {
+        return res.status(200).json({
+          type: 4,
+          data: { flags: 64, embeds: [{ color: 0xff4444, description: "You don't have enough coins" }] }
+        });
+      }
+
+      await safeBalanceUpdate(userId, -amount);
+      await safeBalanceUpdate(targetId, amount);
+
+      return res.status(200).json({
+        type: 4,
+        data: {
+          embeds: [{
+            color: 0x57f287,
+            title: "💸 Coins Sent",
+            description: `You gave **${amount.toLocaleString()} 🪙** to <@${targetId}>`
+          }]
+        }
       });
     }
 
     if (name === "top") {
       const db = await getDB();
-      const top = await db.collection("users")
-        .find({})
-        .sort({ balance: -1 })
-        .limit(10)
-        .toArray();
+      const top = await db.collection("users").find({}).sort({ balance: -1 }).limit(10).toArray();
 
       const medals = ["🥇", "🥈", "🥉"];
+
       const rows = top.map((u, i) => {
-        const rank = medals[i] || `\`#${i + 1}\``;
+        const rank = medals[i] || `#${i + 1}`;
         return `${rank} - ${u.balance.toLocaleString()} 🪙 <@${u.userId}>`;
       }).join("\n");
 
@@ -336,7 +366,7 @@ export default async function handler(req, res) {
           embeds: [{
             color: 0x2b2d31,
             title: "Leaderboard",
-            description: rows || "No users yet!"
+            description: rows || "No users yet"
           }]
         }
       });
