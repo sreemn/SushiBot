@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "mongodb": "^6.6.0",
-    "tweetnacl": "^1.0.3"
+    "tweetnacl": "^1.0.3",
+    "node-fetch": "^3.3.2"
   }
 }
