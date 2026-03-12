@@ -90,7 +90,7 @@ export default async function handler(req, res) {
               title: "How to Play",
               description:
                 "To start playing, an admin must use `/settings` and pick a name for your community. Then just take turns clicking the 🧩 button to keep playing!\n\n" +
-                "[Get Support](https://discord.gg/7HTxrWsH73) | " +
+                "[Get Support](https://discord.gg/4rv6P8xF8U) | " +
                 "[Invite The Bot](https://discord.com/oauth2/authorize?client_id=1480495380041961483&permissions=8&integration_type=0&scope=bot+applications.commands) | " +
                 "[Support us on ko-fi](https://ko-fi.com/sremn)",
 
