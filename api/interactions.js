@@ -95,7 +95,8 @@ export default async function handler(req, res) {
                 "[Support us on ko-fi](https://ko-fi.com/sremn)",
 
               footer: {
-                text: "This bot was made by sremn"
+                text: "This bot was made by sremn",
+                icon_url: "https://cdn.discordapp.com/embed/avatars/0.png"
               }
             }
           ]
