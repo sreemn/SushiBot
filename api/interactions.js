@@ -42,7 +42,6 @@ export default async function handler(req, res) {
 
   if (body.type === 2) {
     const name = body.data.name;
-    const options = body.data.options || [];
 
     if (name === "help") {
       return res.status(200).json({
@@ -54,129 +53,48 @@ export default async function handler(req, res) {
               color: 0x3a3b40,
               description:
                 "If you're just looking for info about how the bot works, a command list or clarification about something - check the /about command.\n\n" +
-                "If that's not enough, [join our Discord server](https://discord.gg/QkvahZ4yW3) where you can find announcements and customer support for all of our bots."
+                "If that's not enough, join our Discord server for announcements and support."
             }
           ]
         }
       });
     }
-if (name === "balance") {
-  const user = body.member?.user || body.user;
-  const username = user.username;
 
-  const balance = 0;
+    if (name === "balance") {
+      const user = body.member?.user || body.user;
+      const username = user.username;
 
-  return res.status(200).json({
-    type: 4,
-    data: {
-      flags: 64,
-      embeds: [
-        {
-          color: 0xac78f3,
-          description: `${username}'s Balance: ${balance} 🪙`
-        }
-      ]
-    }
-  });
-}
-
-    if (name === "hug") {
-      const targetId = options[0].value;
-      const authorId = body.member?.user?.id || body.user.id;
-
-      const gif = await fetch("https://api.waifu.pics/sfw/hug");
-      const data = await gif.json();
+      const balance = 0;
 
       return res.status(200).json({
         type: 4,
         data: {
-          content: `<@${authorId}> hugged <@${targetId}>`,
+          flags: 64,
           embeds: [
             {
-              color: 0xff7fb0,
-              image: {
-                url: data.url
-              }
+              color: 0xac78f3,
+              description: `${username}'s Balance: ${balance} 🪙`
             }
-          ],
-          components: [
-            {
-              type: 1,
-              components: [
-                {
-                  type: 2,
-                  style: 2,
-                  label: "Hug Back",
-                  custom_id: `hugback_${targetId}_${authorId}`,
-                  emoji: {
-                    name: "Heart",
-                    id: "1396919562645143583"
-                  }
-                }
-              ]
-            }
-          ],
-          allowed_mentions: {
-            users: [authorId, targetId]
-          }
+          ]
         }
       });
     }
-  }
 
-  if (body.type === 3) {
-    if (body.data.custom_id.startsWith("hugback_")) {
-      const parts = body.data.custom_id.split("_");
-      const targetId = parts[1];
-      const originalAuthorId = parts[2];
-      const clickerId = body.member?.user?.id || body.user.id;
-
-      if (clickerId !== targetId) {
-        return res.status(200).json({
-          type: 4,
-          data: {
-            flags: 64,
-            content: "This hug wasn't meant for you."
-          }
-        });
-      }
-
-      const gif = await fetch("https://api.waifu.pics/sfw/hug");
-      const data = await gif.json();
-
+    if (name === "about") {
       return res.status(200).json({
-        type: 7,
+        type: 4,
         data: {
-          content: `<@${clickerId}> hugged <@${originalAuthorId}> back!`,
           embeds: [
             {
-              color: 0xff7fb0,
-              image: {
-                url: data.url
+              color: 0x3a3b40,
+              description:
+                "**How to Play**\n" +
+                "To start playing, an admin must use the commands available in this bot and set up your server's experience. Once configured, members can interact with the bot commands and enjoy the features together.",
+              footer: {
+                text: "This bot was made by <@783891446905438260>."
               }
             }
-          ],
-          components: [
-            {
-              type: 1,
-              components: [
-                {
-                  type: 2,
-                  style: 2,
-                  label: "Hug Back",
-                  disabled: true,
-                  custom_id: `hugback_${targetId}_${originalAuthorId}`,
-                  emoji: {
-                    name: "Heart",
-                    id: "1396919562645143583"
-                  }
-                }
-              ]
-            }
-          ],
-          allowed_mentions: {
-            users: [clickerId, originalAuthorId]
-          }
+          ]
         }
       });
     }
