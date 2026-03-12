@@ -365,36 +365,63 @@ export default async function handler(req, res) {
       });
     }
 
-    if (name === "leaderboard") {
-      const db = await getDB();
-      const top = await db.collection("users").find({}).sort({ balance: -1 }).limit(10).toArray();
+if (name === "leaderboard") {
+  const db = await getDB();
 
-      const icons = ["🥇", "🥈", "🥉", "`#4`", "`#5`", "`#6`", "`#7`", "`#8`", "`#9`", "`#10`"];
+  const guildId = body.guild_id;
 
-      let rows = "";
+  const users = await db
+    .collection("users")
+    .find({})
+    .sort({ balance: -1 })
+    .toArray();
 
-      for (let i = 0; i < 10; i++) {
-        const user = top[i];
+  const icons = ["🥇", "🥈", "🥉"];
 
-        if (user) {
-          rows += `${icons[i]} - ${user.balance.toLocaleString()} 🪙 <@${user.userId}>\n`;
-        } else {
-          rows += `${icons[i]}\n`;
+  let rows = "";
+  let rankIndex = 0;
+
+  for (const user of users) {
+    if (rankIndex >= 10) break;
+
+    try {
+      const r = await fetch(
+        `https://discord.com/api/v10/guilds/${guildId}/members/${user.userId}`,
+        {
+          headers: {
+            Authorization: `Bot ${BOT_TOKEN}`
+          }
         }
-      }
+      );
 
-      return res.status(200).json({
-        type: 4,
-        data: {
-          embeds: [{
-            color: 0x2b2d31,
-            title: "Most Experienced Gardeners",
-            description: rows.trim()
-          }]
-        }
-      });
+      if (r.status !== 200) continue;
+
+      let rank = rankIndex < 3 ? icons[rankIndex] : `\`#${rankIndex + 1}\``;
+
+      rows += `${rank} - ${user.balance.toLocaleString()} 🪙 <@${user.userId}>\n`;
+
+      rankIndex++;
+
+    } catch {
+      continue;
     }
   }
+
+  if (!rows) rows = "No players yet.";
+
+  return res.status(200).json({
+    type: 4,
+    data: {
+      embeds: [
+        {
+          color: 0x3a3b40,
+          title: "Most Experienced Gardeners",
+          description: rows.trim()
+        }
+      ]
+    }
+  });
+}
 
   return res.status(200).json({
     type: 4,
