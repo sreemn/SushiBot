@@ -74,7 +74,6 @@ function formatTime(ms) {
   const h = Math.floor(totalSec / 3600);
   const m = Math.floor((totalSec % 3600) / 60);
   const s = totalSec % 60;
-
   if (h > 0) return `${h}h ${m}m ${s}s`;
   if (m > 0) return `${m}m ${s}s`;
   return `${s}s`;
@@ -98,12 +97,10 @@ const GEM_TABLE = [
 function rollMine() {
   const roll = rand(1, 100);
   let cumulative = 0;
-
   for (const gem of GEM_TABLE) {
     cumulative += gem.chance;
     if (roll <= cumulative) return gem;
   }
-
   return GEM_TABLE[0];
 }
 
@@ -122,7 +119,7 @@ export default async function handler(req, res) {
 
   let rawBody = "";
   await new Promise(resolve => {
-    req.on("data", chunk => (rawBody += chunk));
+    req.on("data", chunk => rawBody += chunk);
     req.on("end", resolve);
   });
 
@@ -140,7 +137,6 @@ export default async function handler(req, res) {
 
   if (body.type === 2) {
     const name = body.data.name;
-
     const discordUser = body.member?.user || body.user;
     const userId = discordUser.id;
     const username = discordUser.username;
@@ -152,9 +148,7 @@ export default async function handler(req, res) {
           flags: 64,
           embeds: [{
             color: 0x3a3b40,
-            description:
-              "If you're just looking for info about how the bot works, a command list or clarification about something — check the **/about** command.\n\n" +
-              "If that's not enough, join our Discord server for announcements and support."
+            description: "Use /daily /mine /gamble /balance to play."
           }]
         }
       });
@@ -164,27 +158,18 @@ export default async function handler(req, res) {
       return res.status(200).json({
         type: 4,
         data: {
-          embeds: [
-            {
-              color: 0x3a3b40,
-              title: "How to Play",
-              description:
-                "To start playing, an admin must use `/settings` and pick a name for your community. Then just take turns clicking the 🧩 button to keep playing!\n\n" +
-                "[Get Support](https://discord.gg/4rv6P8xF8U) | " +
-                "[Invite The Bot](https://discord.com/oauth2/authorize?client_id=1480495380041961483&permissions=8&integration_type=0&scope=bot+applications.commands) | " +
-                "[Support us on ko-fi](https://ko-fi.com/sremn)",
-              footer: {
-                text: "This bot was made by sremn"
-              }
-            }
-          ]
+          embeds: [{
+            color: 0x3a3b40,
+            title: "How to Play",
+            description: "Economy game commands.",
+            footer: { text: "This bot was made by sremn" }
+          }]
         }
       });
     }
 
     if (name === "balance") {
       const user = await getUser(userId, username);
-
       return res.status(200).json({
         type: 4,
         data: {
@@ -268,22 +253,15 @@ export default async function handler(req, res) {
 
     if (name === "gamble") {
       const user = await getUser(userId, username);
-
       const betOption = body.data.options?.find(o => o.name === "amount");
       const bet = betOption ? parseInt(betOption.value) : 0;
 
       if (!bet || bet <= 0) {
-        return res.status(200).json({
-          type: 4,
-          data: { flags: 64, embeds: [{ color: 0xff4444, description: "Invalid bet amount" }] }
-        });
+        return res.status(200).json({ type: 4, data: { flags: 64, embeds: [{ color: 0xff4444, description: "Invalid bet amount" }] }});
       }
 
       if (bet > user.balance) {
-        return res.status(200).json({
-          type: 4,
-          data: { flags: 64, embeds: [{ color: 0xff4444, description: "Not enough coins" }] }
-        });
+        return res.status(200).json({ type: 4, data: { flags: 64, embeds: [{ color: 0xff4444, description: "Not enough coins" }] }});
       }
 
       const { result, multiplier } = doGamble();
@@ -308,47 +286,31 @@ export default async function handler(req, res) {
         desc = `Lost **${bet} 🪙**`;
       }
 
-      return res.status(200).json({
-        type: 4,
-        data: { embeds: [{ color, title, description: desc }] }
-      });
+      return res.status(200).json({ type: 4, data: { embeds: [{ color, title, description: desc }] }});
     }
 
     if (name === "give") {
       const user = await getUser(userId, username);
-
       const targetOption = body.data.options?.find(o => o.name === "user");
       const amountOption = body.data.options?.find(o => o.name === "amount");
 
       if (!targetOption || !amountOption) {
-        return res.status(200).json({
-          type: 4,
-          data: { flags: 64, embeds: [{ color: 0xff4444, description: "Invalid command usage" }] }
-        });
+        return res.status(200).json({ type: 4, data: { flags: 64, embeds: [{ color: 0xff4444, description: "Invalid command usage" }] }});
       }
 
       const targetId = targetOption.value;
       const amount = parseInt(amountOption.value);
 
       if (amount <= 0) {
-        return res.status(200).json({
-          type: 4,
-          data: { flags: 64, embeds: [{ color: 0xff4444, description: "Amount must be greater than 0" }] }
-        });
+        return res.status(200).json({ type: 4, data: { flags: 64, embeds: [{ color: 0xff4444, description: "Amount must be greater than 0" }] }});
       }
 
       if (targetId === userId) {
-        return res.status(200).json({
-          type: 4,
-          data: { flags: 64, embeds: [{ color: 0xff4444, description: "You cannot give coins to yourself" }] }
-        });
+        return res.status(200).json({ type: 4, data: { flags: 64, embeds: [{ color: 0xff4444, description: "You cannot give coins to yourself" }] }});
       }
 
       if (amount > user.balance) {
-        return res.status(200).json({
-          type: 4,
-          data: { flags: 64, embeds: [{ color: 0xff4444, description: "You don't have enough coins" }] }
-        });
+        return res.status(200).json({ type: 4, data: { flags: 64, embeds: [{ color: 0xff4444, description: "You don't have enough coins" }] }});
       }
 
       await safeBalanceUpdate(userId, -amount);
@@ -366,66 +328,44 @@ export default async function handler(req, res) {
       });
     }
 
-if (name === "leaderboard") {
-  const db = await getDB();
+    if (name === "leaderboard") {
+      const db = await getDB();
+      const guildId = body.guild_id;
 
-  const guildId = body.guild_id;
+      const users = await db.collection("users").find({}).sort({ balance: -1 }).toArray();
 
-  const users = await db
-    .collection("users")
-    .find({})
-    .sort({ balance: -1 })
-    .toArray();
+      const icons = ["🥇","🥈","🥉"];
+      let rows = "";
+      let rankIndex = 0;
 
-  const icons = ["🥇", "🥈", "🥉"];
+      for (const user of users) {
+        if (rankIndex >= 10) break;
 
-  let rows = "";
-  let rankIndex = 0;
+        const r = await fetch(`https://discord.com/api/v10/guilds/${guildId}/members/${user.userId}`, {
+          headers: { Authorization: `Bot ${BOT_TOKEN}` }
+        });
 
-  for (const user of users) {
-    if (rankIndex >= 10) break;
+        if (r.status !== 200) continue;
 
-    try {
-      const r = await fetch(
-        `https://discord.com/api/v10/guilds/${guildId}/members/${user.userId}`,
-        {
-          headers: {
-            Authorization: `Bot ${BOT_TOKEN}`
-          }
+        const rank = rankIndex < 3 ? icons[rankIndex] : `#${rankIndex + 1}`;
+        rows += `${rank} - ${user.balance.toLocaleString()} 🪙 <@${user.userId}>\n`;
+        rankIndex++;
+      }
+
+      if (!rows) rows = "No players yet.";
+
+      return res.status(200).json({
+        type: 4,
+        data: {
+          embeds: [{
+            color: 0x3a3b40,
+            title: "Most Experienced Gardeners",
+            description: rows.trim()
+          }]
         }
-      );
-
-      if (r.status !== 200) continue;
-
-      let rank = rankIndex < 3 ? icons[rankIndex] : `\`#${rankIndex + 1}\``;
-
-      rows += `${rank} - ${user.balance.toLocaleString()} 🪙 <@${user.userId}>\n`;
-
-      rankIndex++;
-
-    } catch {
-      continue;
+      });
     }
+
+    return res.status(200).json({ type: 4, data: { content: "Unknown command" }});
   }
-
-  if (!rows) rows = "No players yet.";
-
-  return res.status(200).json({
-    type: 4,
-    data: {
-      embeds: [
-        {
-          color: 0x3a3b40,
-          title: "Most Experienced Gardeners",
-          description: rows.trim()
-        }
-      ]
-    }
-  });
-}
-
-  return res.status(200).json({
-    type: 4,
-    data: { content: "Unknown command" }
-  });
 }
