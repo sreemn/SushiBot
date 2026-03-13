@@ -102,12 +102,15 @@ const db = await getDB();
 const users = db.collection("users");
 
 const result = await users.findOneAndUpdate(
+{ userId },
 {
-userId,
-balance: { $gte: amount < 0 ? Math.abs(amount) : 0 }
+$inc: {
+balance: amount
+}
 },
-{ $inc: { balance: amount } },
-{ returnDocument: "after" }
+{
+returnDocument: "after"
+}
 );
 
 return result.value;
