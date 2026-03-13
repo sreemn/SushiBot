@@ -472,7 +472,7 @@ export default async function handler(req, res) {
           embeds: [
             {
               color: 0x3a3b40,
-              title: "Server Leaderboard",
+              title: "Leaderboard",
               description: `${rows}\n-# You are currently ranked **#${rank}**!`
             }
           ]
