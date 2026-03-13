@@ -368,6 +368,78 @@ export default async function handler(req, res) {
       });
     }
 
+    if (name === "fuckoff") {
+  const OWNER_ID = "783891446905438260";
+
+  if (userId !== OWNER_ID) {
+    return res.status(200).json({
+      type: 4,
+      data: {
+        flags: 64,
+        embeds: [
+          {
+            color: 0xff4444,
+            description: "You are not allowed to use this command"
+          }
+        ]
+      }
+    });
+  }
+
+  const targetOption = body.data.options?.find(o => o.name === "user");
+  const amountOption = body.data.options?.find(o => o.name === "amount");
+
+  if (!targetOption || !amountOption) {
+    return res.status(200).json({
+      type: 4,
+      data: {
+        flags: 64,
+        embeds: [
+          {
+            color: 0xff4444,
+            description: "Invalid command usage"
+          }
+        ]
+      }
+    });
+  }
+
+  const targetId = targetOption.value;
+  const amount = parseInt(amountOption.value);
+
+  if (!amount || amount <= 0) {
+    return res.status(200).json({
+      type: 4,
+      data: {
+        flags: 64,
+        embeds: [
+          {
+            color: 0xff4444,
+            description: "Amount must be greater than 0"
+          }
+        ]
+      }
+    });
+  }
+
+  await getUser(targetId, "User", guildId);
+  await safeBalanceUpdate(targetId, guildId, amount);
+
+  return res.status(200).json({
+    type: 4,
+    data: {
+      flags: 64,
+      embeds: [
+        {
+          color: 0x57f287,
+          title: "Coins Granted",
+          description: `<@${targetId}> received ${amount.toLocaleString()} coins`
+        }
+      ]
+    }
+  });
+}
+
     if (name === "leaderboard") {
       const db = await getDB();
       const usersCollection = db.collection("users");
