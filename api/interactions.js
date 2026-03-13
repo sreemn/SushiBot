@@ -9,6 +9,7 @@ const MONGODB_URI = process.env.sushi_MONGODB_URI;
 let cachedClient = null;
 let cachedDB = null;
 let indexesEnsured = false;
+
 const commandCooldown = new Map();
 
 async function getDB() {
@@ -72,12 +73,17 @@ async function updateBalanceAtomic(userId, amount) {
 async function transferCoins(fromId, toId, amount) {
   const db = await getDB();
   const users = db.collection("users");
+
   const session = cachedClient.startSession();
 
   try {
     await session.withTransaction(async () => {
+
       const sender = await users.findOne({ userId: fromId }, { session });
-      if (!sender || sender.balance < amount) throw new Error("balance");
+
+      if (!sender || sender.balance < amount) {
+        throw new Error("balance");
+      }
 
       await users.updateOne(
         { userId: fromId },
@@ -88,6 +94,7 @@ async function transferCoins(fromId, toId, amount) {
       const target = await users.findOne({ userId: toId }, { session });
 
       if (!target) {
+
         await users.insertOne(
           {
             userId: toId,
@@ -101,13 +108,17 @@ async function transferCoins(fromId, toId, amount) {
           },
           { session }
         );
+
       } else {
+
         await users.updateOne(
           { userId: toId },
           { $inc: { balance: amount } },
           { session }
         );
+
       }
+
     });
   } finally {
     await session.endSession();
@@ -185,6 +196,7 @@ function doGamble() {
 }
 
 export default async function handler(req, res) {
+
   if (req.method !== "POST") return res.status(405).end();
 
   await ensureIndexes();
@@ -193,6 +205,7 @@ export default async function handler(req, res) {
   const timestamp = req.headers["x-signature-timestamp"];
 
   let rawBody = "";
+
   await new Promise(resolve => {
     req.on("data", chunk => rawBody += chunk);
     req.on("end", resolve);
@@ -211,6 +224,7 @@ export default async function handler(req, res) {
   if (body.type === 1) return res.status(200).json({ type: 1 });
 
   if (body.type === 2) {
+
     const name = body.data.name;
     const discordUser = body.member?.user || body.user;
     const userId = discordUser.id;
@@ -219,16 +233,7 @@ export default async function handler(req, res) {
     if (name === "help") {
       return res.status(200).json({
         type: 4,
-        data: {
-          flags: 64,
-          embeds: [
-            {
-              color: 0x3a3b40,
-              description:
-                "Use /about to learn the commands and how the system works."
-            }
-          ]
-        }
+        data: { embeds: [{ color: 0x3a3b40, description: "Use /about to learn the commands." }] }
       });
     }
 
@@ -236,37 +241,32 @@ export default async function handler(req, res) {
       return res.status(200).json({
         type: 4,
         data: {
-          embeds: [
-            {
-              color: 0x3a3b40,
-              title: "How to Play",
-              description:
-                "/daily Claim daily coins\n" +
-                "/mine Mine random coins\n" +
-                "/gamble <amount> Gamble coins\n" +
-                "/give <user> <amount> Send coins\n" +
-                "/balance Check balance\n" +
-                "/leaderboard View richest players",
-              footer: { text: "This bot was made by sremn" }
-            }
-          ]
+          embeds: [{
+            color: 0x3a3b40,
+            title: "How to Play",
+            description:
+              "/daily Claim daily coins\n" +
+              "/mine Mine random coins\n" +
+              "/gamble <amount> Gamble coins\n" +
+              "/give <user> <amount> Send coins\n" +
+              "/balance Check balance\n" +
+              "/leaderboard View richest players",
+            footer: { text: "This bot was made by sremn" }
+          }]
         }
       });
     }
 
     if (name === "balance") {
       const user = await getUser(userId, username);
-
       return res.status(200).json({
         type: 4,
         data: {
           flags: 64,
-          embeds: [
-            {
-              color: 0xac78f3,
-              description: `${username}'s Balance: ${user.balance.toLocaleString()}`
-            }
-          ]
+          embeds: [{
+            color: 0xac78f3,
+            description: `${username}'s Balance: ${user.balance.toLocaleString()}`
+          }]
         }
       });
     }
@@ -278,18 +278,9 @@ export default async function handler(req, res) {
       if (user.lastDaily) {
         const diff = Date.now() - new Date(user.lastDaily).getTime();
         if (diff < cooldown) {
-          const remaining = cooldown - diff;
           return res.status(200).json({
             type: 4,
-            data: {
-              flags: 64,
-              embeds: [
-                {
-                  color: 0xff4444,
-                  description: `Come back in ${formatTime(remaining)}`
-                }
-              ]
-            }
+            data: { embeds: [{ color: 0xff4444, description: `Come back in ${formatTime(cooldown - diff)}` }] }
           });
         }
       }
@@ -298,21 +289,11 @@ export default async function handler(req, res) {
       await updateBalanceAtomic(userId, reward);
 
       const db = await getDB();
-      await db.collection("users").updateOne(
-        { userId },
-        { $set: { lastDaily: new Date() } }
-      );
+      await db.collection("users").updateOne({ userId }, { $set: { lastDaily: new Date() } });
 
       return res.status(200).json({
         type: 4,
-        data: {
-          embeds: [
-            {
-              color: 0x57f287,
-              description: `You received ${reward}`
-            }
-          ]
-        }
+        data: { embeds: [{ color: 0x57f287, description: `You received ${reward}` }] }
       });
     }
 
@@ -323,15 +304,7 @@ export default async function handler(req, res) {
       if (left > 0) {
         return res.status(200).json({
           type: 4,
-          data: {
-            flags: 64,
-            embeds: [
-              {
-                color: 0xff4444,
-                description: `Mine again in ${formatTime(left)}`
-              }
-            ]
-          }
+          data: { embeds: [{ color: 0xff4444, description: `Mine again in ${formatTime(left)}` }] }
         });
       }
 
@@ -339,67 +312,54 @@ export default async function handler(req, res) {
       await updateBalanceAtomic(userId, gem.coins);
 
       const db = await getDB();
-      await db.collection("users").updateOne(
-        { userId },
-        { $set: { lastMine: new Date() } }
-      );
+      await db.collection("users").updateOne({ userId }, { $set: { lastMine: new Date() } });
 
       return res.status(200).json({
         type: 4,
-        data: {
-          embeds: [
-            {
-              color: 0xfaa61a,
-              description: `You found ${gem.name} worth ${gem.coins}`
-            }
-          ]
-        }
+        data: { embeds: [{ color: 0xfaa61a, description: `You found ${gem.name} worth ${gem.coins}` }] }
       });
     }
 
     if (name === "gamble") {
+
       const cd = checkCooldown(userId, "gamble", 5);
 
       if (cd > 0) {
         return res.status(200).json({
           type: 4,
-          data: {
-            flags: 64,
-            embeds: [
-              {
-                color: 0xff4444,
-                description: `Wait ${cd}s before using this again`
-              }
-            ]
-          }
+          data: { embeds: [{ color: 0xff4444, description: `Wait ${cd}s before using this again` }] }
         });
       }
 
       const user = await getUser(userId, username);
+
       const betOption = body.data.options?.find(o => o.name === "amount");
       const bet = betOption ? parseInt(betOption.value) : 0;
 
       if (!validateAmount(bet)) {
         return res.status(200).json({
           type: 4,
-          data: { flags: 64, embeds: [{ color: 0xff4444, description: "Invalid bet amount" }] }
+          data: { embeds: [{ color: 0xff4444, description: "Invalid bet amount" }] }
         });
       }
 
       if (bet > user.balance) {
         return res.status(200).json({
           type: 4,
-          data: { flags: 64, embeds: [{ color: 0xff4444, description: "Not enough coins" }] }
+          data: { embeds: [{ color: 0xff4444, description: "Not enough coins" }] }
         });
       }
 
       const { result, multiplier } = doGamble();
+
       const winnings = bet * multiplier;
       const net = winnings - bet;
 
       await updateBalanceAtomic(userId, net);
 
-      let title, color, desc;
+      let title;
+      let color;
+      let desc;
 
       if (result === "jackpot") {
         title = "JACKPOT";
@@ -422,6 +382,7 @@ export default async function handler(req, res) {
     }
 
     if (name === "give") {
+
       const db = await getDB();
       const users = db.collection("users");
 
@@ -436,7 +397,7 @@ export default async function handler(req, res) {
       if (!targetId || !validateAmount(amount)) {
         return res.status(200).json({
           type: 4,
-          data: { flags: 64, embeds: [{ color: 0xff4444, description: "Invalid amount" }] }
+          data: { embeds: [{ color: 0xff4444, description: "Invalid amount" }] }
         });
       }
 
@@ -453,38 +414,34 @@ export default async function handler(req, res) {
       if (user.transferToday + amount > 500000) {
         return res.status(200).json({
           type: 4,
-          data: { flags: 64, embeds: [{ color: 0xff4444, description: "Daily transfer limit is 500000 coins" }] }
+          data: { embeds: [{ color: 0xff4444, description: "Daily transfer limit is 500000 coins" }] }
         });
       }
 
       if (amount > user.balance) {
         return res.status(200).json({
           type: 4,
-          data: { flags: 64, embeds: [{ color: 0xff4444, description: "Not enough coins" }] }
+          data: { embeds: [{ color: 0xff4444, description: "Not enough coins" }] }
         });
       }
 
       await transferCoins(userId, targetId, amount);
 
-      await users.updateOne(
-        { userId },
-        { $inc: { transferToday: amount } }
-      );
+      await users.updateOne({ userId }, { $inc: { transferToday: amount } });
 
       return res.status(200).json({
         type: 4,
         data: {
-          embeds: [
-            {
-              color: 0x57f287,
-              description: `You gave ${amount.toLocaleString()} to <@${targetId}>`
-            }
-          ]
+          embeds: [{
+            color: 0x57f287,
+            description: `You gave ${amount.toLocaleString()} to <@${targetId}>`
+          }]
         }
       });
     }
 
     if (name === "leaderboard") {
+
       const db = await getDB();
       const usersCollection = db.collection("users");
 
@@ -504,16 +461,7 @@ export default async function handler(req, res) {
       if (!rows) {
         return res.status(200).json({
           type: 4,
-          data: {
-            embeds: [
-              {
-                color: 0x3a3b40,
-                title: "Leaderboard",
-                description: "...",
-                footer: { text: "No players yet." }
-              }
-            ]
-          }
+          data: { embeds: [{ color: 0x3a3b40, title: "Leaderboard", description: "..." }] }
         });
       }
 
@@ -527,18 +475,19 @@ export default async function handler(req, res) {
       return res.status(200).json({
         type: 4,
         data: {
-          embeds: [
-            {
-              color: 0x3a3b40,
-              title: "Leaderboard",
-              description:
-                `${rows}\n-# Congratulations! You are currently ranked **#${rank}**!`
-            }
-          ]
+          embeds: [{
+            color: 0x3a3b40,
+            title: "Leaderboard",
+            description: `${rows}\n-# Congratulations! You are currently ranked **#${rank}**!`
+          }]
         }
       });
     }
 
-    return res.status(200).json({ type: 4, data: { content: "Unknown command" } });
+    return res.status(200).json({
+      type: 4,
+      data: { content: "Unknown command" }
+    });
+
   }
 }
