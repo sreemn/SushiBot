@@ -187,7 +187,7 @@ export default async function handler(req, res) {
           embeds: [
             {
               color: 0xac78f3,
-              description: `${username}'s Balance: ${user.balance.toLocaleString()} 🪙`
+              description: `${username}'s Balance: ${user.balance.toLocaleString()}`
             }
           ]
         }
@@ -207,7 +207,7 @@ export default async function handler(req, res) {
             embeds: [
               {
                 color: 0xff4444,
-                title: "⏳ Daily Already Claimed",
+                title: "Daily Already Claimed",
                 description: `Come back in **${formatTime(left)}**`
               }
             ]
@@ -225,8 +225,8 @@ export default async function handler(req, res) {
           embeds: [
             {
               color: 0x57f287,
-              title: "📅 Daily Reward",
-              description: `You received **${reward} 🪙**`
+              title: "Daily Reward",
+              description: `You received **${reward}**`
             }
           ]
         }
@@ -245,7 +245,7 @@ export default async function handler(req, res) {
             embeds: [
               {
                 color: 0xff4444,
-                title: "⏳ Pickaxe cooling down",
+                title: "Pickaxe cooling down",
                 description: `Mine again in **${formatTime(left)}**`
               }
             ]
@@ -263,8 +263,8 @@ export default async function handler(req, res) {
           embeds: [
             {
               color: 0xfaa61a,
-              title: "⛏️ Mining Results",
-              description: `You found **${gem.name}** worth **${gem.coins} 🪙**`
+              title: "Mining Results",
+              description: `You found **${gem.name}** worth **${gem.coins}**`
             }
           ]
         }
@@ -299,17 +299,17 @@ export default async function handler(req, res) {
       let title, color, desc;
 
       if (result === "jackpot") {
-        title = "🌟 JACKPOT";
+        title = "JACKPOT";
         color = 0xffd700;
-        desc = `You won **${winnings} 🪙**`;
+        desc = `You won **${winnings}**`;
       } else if (result === "win") {
-        title = "🎰 You Won";
+        title = "You Won";
         color = 0x57f287;
-        desc = `You doubled to **${winnings} 🪙**`;
+        desc = `You doubled to **${winnings}**`;
       } else {
-        title = "🎰 You Lost";
+        title = "You Lost";
         color = 0xff4444;
-        desc = `Lost **${bet} 🪙**`;
+        desc = `Lost **${bet}**`;
       }
 
       return res.status(200).json({ type: 4, data: { embeds: [{ color, title, description: desc }] } });
@@ -360,8 +360,8 @@ export default async function handler(req, res) {
           embeds: [
             {
               color: 0x57f287,
-              title: "💸 Coins Sent",
-              description: `You gave **${amount.toLocaleString()} 🪙** to <@${targetId}>`
+              title: "Coins Sent",
+              description: `You gave **${amount.toLocaleString()}** to <@${targetId}>`
             }
           ]
         }
@@ -372,18 +372,14 @@ export default async function handler(req, res) {
       const db = await getDB();
       const usersCollection = db.collection("users");
 
-      const topUsers = await usersCollection
-        .find({})
-        .sort({ balance: -1 })
-        .limit(10)
-        .toArray();
+      const topUsers = await usersCollection.find({}).sort({ balance: -1 }).limit(10).toArray();
 
       let rows = "";
 
       for (let i = 0; i < topUsers.length; i++) {
         const u = topUsers[i];
         const coins = u.balance || 0;
-        rows += `${i + 1}. <@${u.userId}> - Coins ${coins.toLocaleString()} 🪙\n`;
+        rows += `${i + 1}. <@${u.userId}> - Coins ${coins.toLocaleString()}\n`;
       }
 
       const currentUser = await getUser(userId, username);
@@ -398,9 +394,9 @@ export default async function handler(req, res) {
         data: {
           embeds: [
             {
-              color: 0x2b2d31,
+              color: 0x3a3b40,
               title: "Leaderboard",
-              description: `${rows}\nCongratulations! You are currently ranked #${rank}!`
+              description: `${rows}\n-# Congratulations! You are currently ranked **#${rank}**!`
             }
           ]
         }
