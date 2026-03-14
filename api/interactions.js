@@ -502,7 +502,7 @@ if (name === "leaderboard") {
           {
             color: 0x3a3b40,
             title: "Leaderboard",
-            description: `${rows}\n-# Earn cookies to enter the leaderboard`
+            description: `${rows}\n-# Earn cookies to enter the leaderboard!`
           }
         ]
       }
