@@ -200,19 +200,17 @@ export default async function handler(req, res) {
       const left = cooldownLeft(user.lastDaily, cooldown);
 
       if (left > 0) {
-        return res.status(200).json({
-          type: 4,
-          data: {
-            flags: 64,
-            embeds: [
-              {
-                color: 0xff4444,
-                title: "Daily Already Claimed",
-                description: `Come back in ${formatTime(left)}`
-              }
-            ]
-          }
-        });
+return res.status(200).json({
+  type: 4,
+  data: {
+    embeds: [
+      {
+        color: 0x57f287,
+        description: `You claimed your daily reward of **${reward.toLocaleString()} coins!** ✨`
+      }
+    ]
+  }
+});
       }
 
       const reward = rand(150, 350);
