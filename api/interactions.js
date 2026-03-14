@@ -162,11 +162,13 @@ export default async function handler(req, res) {
         data: {
           embeds: [
             {
-              color: 0x3a3b40,
-              title: "How to Play",
+              color: 0x7e73ff,
+              title: "Fireside's Help Menu",
               description:
-                "To start playing, an admin must use /settings and pick a name for your community. Then take turns clicking the button to keep playing.\n\nSupport https://discord.gg/4rv6P8xF8U\nInvite https://discord.com/oauth2/authorize?client_id=1480495380041961483&permissions=8&integration_type=0&scope=bot+applications.commands",
-              footer: { text: "This bot was made by sremn" }
+                "I'm a bot designed to be a helpful and fun companion for your server. Choose a feature from the dropdown below to see what I can do!\n\nUse `/help [command]` for more details.",
+              image: {
+                url: "https://cdn.discordapp.com/attachments/1482244165114007582/1482275628861493321/HelpMenu.png?ex=69b65c41&is=69b50ac1&hm=8e6770623a777db1994b30deed862db6f78585026dd1a365de2687161f888fe3&"
+              }
             }
           ]
         }
@@ -183,14 +185,14 @@ export default async function handler(req, res) {
               title: "Tools & Info",
               description:
                 "Helpful tools and information commands.\n\nUse `/help [command]` for more details.\n\n" +
-                "**`/about`** - Shows information about the bot and how it works.\n" +
-                "**`/help`** - Displays the help menu with all available commands.\n" +
-                "**`/balance`** - Check your current coin balance.\n" +
-                "**`/daily`** - Claim your daily coin reward.\n" +
-                "**`/mine`** - Mine for resources to earn coins.\n" +
-                "**`/gamble`** - Bet coins for a chance to win more.\n" +
-                "**`/give`** - Send coins to another user.\n" +
-                "**`/leaderboard`** - View the richest users in the server.",
+                "**/about** - Shows information about the bot and how it works.\n" +
+                "**/help** - Displays the help menu with all available commands.\n" +
+                "**/balance** - Check your current coin balance.\n" +
+                "**/daily** - Claim your daily coin reward.\n" +
+                "**/mine** - Mine for resources to earn coins.\n" +
+                "**/gamble** - Bet coins for a chance to win more.\n" +
+                "**/give** - Send coins to another user.\n" +
+                "**/leaderboard** - View the richest users in the server.",
               image: {
                 url: "https://cdn.discordapp.com/attachments/1482244165114007582/1482275630170112000/Tools.png?ex=69b65c41&is=69b50ac1&hm=dedf983c9ea6c80b71f90002add39e7f3ccc8d39667047cf88f6e91539ee5015&"
               }
@@ -217,9 +219,7 @@ export default async function handler(req, res) {
       if (left > 0) {
         return res.status(200).json({
           type: 4,
-          data: {
-            content: `You already claimed your daily reward. Come back in ${formatTime(left)}`
-          }
+          data: { content: `You already claimed your daily reward. Come back in ${formatTime(left)}` }
         });
       }
 
@@ -229,9 +229,7 @@ export default async function handler(req, res) {
 
       return res.status(200).json({
         type: 4,
-        data: {
-          content: `You claimed your daily reward of \`${reward.toLocaleString()}\` coins!`
-        }
+        data: { content: `You claimed your daily reward of \`${reward.toLocaleString()}\` coins!` }
       });
     }
 
@@ -315,11 +313,7 @@ export default async function handler(req, res) {
       const database = await getDB();
       const users = database.collection("users");
 
-      const topUsers = await users
-        .find({ guildId })
-        .sort({ balance: -1 })
-        .limit(10)
-        .toArray();
+      const topUsers = await users.find({ guildId }).sort({ balance: -1 }).limit(10).toArray();
 
       let rows = "";
       for (let i = 0; i < topUsers.length; i++) {
@@ -348,15 +342,9 @@ export default async function handler(req, res) {
       });
     }
 
-    return res.status(200).json({
-      type: 4,
-      data: { content: "Unknown command" }
-    });
+    return res.status(200).json({ type: 4, data: { content: "Unknown command" } });
 
   } catch {
-    return res.status(200).json({
-      type: 4,
-      data: { content: "Internal error" }
-    });
+    return res.status(200).json({ type: 4, data: { content: "Internal error" } });
   }
 }
