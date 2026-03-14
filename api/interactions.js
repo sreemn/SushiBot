@@ -154,21 +154,46 @@ export default async function handler(req, res) {
   const username = discordUser.username;
   const guildId = body.guild_id;
 
-  if (name === "about") {
-    return res.status(200).json({
-      type: 4,
-      data: {
-        embeds: [
-          {
-            color: 0x3b9cff,
-            title: "Fireside's Help Menu",
-            description: "I'm a bot designed to be a helpful and fun companion for your server. Choose a feature from the dropdown below to see what I can do.\n\nUse /help command for more details.",
-            image: { url: "https://cdn.discordapp.com/attachments/1482244165114007582/1482275628861493321/HelpMenu.png" }
+if (name === "about") {
+
+  const db = await getDB();
+  const usersCollection = db.collection("users");
+
+  const guilds = await usersCollection.distinct("guildId");
+  const users = await usersCollection.distinct("userId");
+
+  const guildCount = guilds.length;
+  const userCount = users.length;
+
+  return res.status(200).json({
+    type: 4,
+    data: {
+      embeds: [
+        {
+          color: 0x3b9cff,
+          title: "About Fireside",
+          description: "I'm a multipurpose Discord bot designed to make your server more fun and engaging!",
+          fields: [
+            {
+              name: "Developer",
+              value: "Sreeman",
+              inline: true
+            },
+            {
+              name: "Website",
+              value: "fireside.bot",
+              inline: true
+            }
+          ],
+          footer: {
+            text: `Serving ${guildCount} guilds and ${userCount} users`
           }
-        ]
-      }
-    });
-  }
+        }
+      ]
+    }
+  });
+
+}
 
   if (name === "help") {
     return res.status(200).json({
