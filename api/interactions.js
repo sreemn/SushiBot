@@ -398,7 +398,7 @@ export default async function handler(req, res) {
       data: {
         embeds: [
           {
-            color: 0x7e72ff,
+            color: 0xffca63,
             description: `You baked and found ${item.name} worth ${item.cookies} cookies 🍪`
           }
         ]
