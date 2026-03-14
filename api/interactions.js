@@ -259,7 +259,7 @@ export default async function handler(req, res) {
                 type: 2,
                 style: 5,
                 label: "Invite Me!",
-                url: `https://discord.com/oauth2/authorize?client_id=${APP_ID}&scope=bot%20applications.commands&permissions=8`
+                url: `https://discord.com/oauth2/authorize?client_id=1482044394109407373`
               }
             ]
           }
