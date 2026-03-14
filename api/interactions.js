@@ -181,7 +181,7 @@ if (name === "about") {
             },
             {
               name: "Website",
-              value: "fireside.bot",
+              value: "[fireside.bot](https://fireside.bot)",
               inline: true
             }
           ],
