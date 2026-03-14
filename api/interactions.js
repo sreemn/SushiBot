@@ -333,7 +333,7 @@ export default async function handler(req, res) {
         flags: 64,
         embeds: [
           {
-            color: 0xac78f3,
+            color: 0x7e72ff,
             description: `${username}'s Balance: ${user.balance.toLocaleString()} cookies 🍪`
           }
         ]
