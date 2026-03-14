@@ -267,26 +267,29 @@ export default async function handler(req, res) {
       }
     });
   }
+if (name === "help") {
 
-  if (name === "help") {
-
-    return res.status(200).json({
-      type: 4,
-      data: {
-        embeds: [
-          {
-            color: 0x7e73ff,
-            title: "Tools & Info",
-            description:
-              "/about\n/help\n/ping\n/invite\n/balance\n/daily\n/bake\n/work\n/gamble\n/give\n/deposit\n/withdraw\n/rob\n/leaderboard\n/shop\n/buy\n/inventory",
-            image: {
-              url: "https://cdn.discordapp.com/attachments/1482244165114007582/1482275630170112000/Tools.png"
-            }
+  return res.status(200).json({
+    type: 4,
+    data: {
+      embeds: [
+        {
+          color: 0x3b9cff,
+          author: {
+            name: "Fireside's Help Menu",
+            icon_url: `https://cdn.discordapp.com/avatars/${APP_ID}/${APP_ID}.png`
+          },
+          description:
+            "I'm a multi-purpose bot designed to be a helpful and fun companion for your server. Choose a feature from the dropdown below to see what I can do!\n\nUse `/help [command]` for more details.",
+          image: {
+            url: "https://cdn.discordapp.com/attachments/1482244165114007582/1482275628861493321/HelpMenu.png?ex=69b65c41&is=69b50ac1&hm=8e6770623a777db1994b30deed862db6f78585026dd1a365de2687161f888fe3&"
           }
-        ]
-      }
-    });
-  }
+        }
+      ]
+    }
+  });
+
+}
 
   if (name === "balance") {
 
