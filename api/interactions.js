@@ -44,7 +44,7 @@ async function getUser(userId, username, guildId) {
     { upsert: true, returnDocument: "after" }
   );
 
-  return result.value;
+  return result;
 }
 
 async function changeBalance(userId, guildId, amount) {
@@ -61,7 +61,7 @@ async function changeBalance(userId, guildId, amount) {
     { returnDocument: "after" }
   );
 
-  return result.value;
+  return result;
 }
 
 async function setField(userId, guildId, field, value) {
@@ -165,9 +165,9 @@ export default async function handler(req, res) {
               color: 0x3b9cff,
               title: "Fireside's Help Menu",
               description:
-                "I'm a bot designed to be a helpful and fun companion for your server. Choose a feature from the dropdown below to see what I can do!\n\nUse `/help [command]` for more details.",
+                "I'm a bot designed to be a helpful and fun companion for your server. Choose a feature from the dropdown below to see what I can do.\n\nUse /help [command] for more details.",
               image: {
-                url: "https://cdn.discordapp.com/attachments/1482244165114007582/1482275628861493321/HelpMenu.png?ex=69b65c41&is=69b50ac1&hm=8e6770623a777db1994b30deed862db6f78585026dd1a365de2687161f888fe3&"
+                url: "https://cdn.discordapp.com/attachments/1482244165114007582/1482275628861493321/HelpMenu.png"
               }
             }
           ]
@@ -184,17 +184,17 @@ export default async function handler(req, res) {
               color: 0x7e73ff,
               title: "Tools & Info",
               description:
-                "Helpful tools and information commands.\n\nUse `/help [command]` for more details.\n\n" +
-                "**/about** - Shows information about the bot and how it works.\n" +
-                "**/help** - Displays the help menu with all available commands.\n" +
-                "**/balance** - Check your current coin balance.\n" +
-                "**/daily** - Claim your daily coin reward.\n" +
-                "**/mine** - Mine for resources to earn coins.\n" +
-                "**/gamble** - Bet coins for a chance to win more.\n" +
-                "**/give** - Send coins to another user.\n" +
-                "**/leaderboard** - View the richest users in the server.",
+                "Helpful tools and information commands.\n\nUse /help [command] for more details.\n\n" +
+                "/about - Shows information about the bot and how it works.\n" +
+                "/help - Displays the help menu with all available commands.\n" +
+                "/balance - Check your current coin balance.\n" +
+                "/daily - Claim your daily coin reward.\n" +
+                "/mine - Mine for resources to earn coins.\n" +
+                "/gamble - Bet coins for a chance to win more.\n" +
+                "/give - Send coins to another user.\n" +
+                "/leaderboard - View the richest users in the server.",
               image: {
-                url: "https://cdn.discordapp.com/attachments/1482244165114007582/1482275630170112000/Tools.png?ex=69b65c41&is=69b50ac1&hm=dedf983c9ea6c80b71f90002add39e7f3ccc8d39667047cf88f6e91539ee5015&"
+                url: "https://cdn.discordapp.com/attachments/1482244165114007582/1482275630170112000/Tools.png"
               }
             }
           ]
@@ -229,7 +229,7 @@ export default async function handler(req, res) {
 
       return res.status(200).json({
         type: 4,
-        data: { content: `You claimed your daily reward of \`${reward.toLocaleString()}\` coins!` }
+        data: { content: `You claimed your daily reward of ${reward.toLocaleString()} coins` }
       });
     }
 
@@ -300,6 +300,7 @@ export default async function handler(req, res) {
         return res.status(200).json({ type: 4, data: { content: "You do not have enough coins" } });
       }
 
+      await getUser(targetId, "Unknown", guildId);
       await changeBalance(userId, guildId, -amount);
       await changeBalance(targetId, guildId, amount);
 
@@ -315,7 +316,8 @@ export default async function handler(req, res) {
 
       const topUsers = await users.find({ guildId }).sort({ balance: -1 }).limit(10).toArray();
 
-      let rows = "";
+      let rows = topUsers.length ? "" : "No users yet\n";
+
       for (let i = 0; i < topUsers.length; i++) {
         const u = topUsers[i];
         rows += `${i + 1}. <@${u.userId}> - ${u.balance.toLocaleString()}\n`;
