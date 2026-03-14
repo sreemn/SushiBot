@@ -271,7 +271,7 @@ export default async function handler(req, res) {
 
     for (let i = 0; i < topUsers.length; i++) {
       const u = topUsers[i];
-      rows += `${i + 1}. <@${u.userId}> - 🍪 \`${u.balance.toLocaleString()}\`\n`;
+      rows += `${i + 1}. <@${u.userId}> - \`${u.balance.toLocaleString()}\`\n`;
     }
 
     const currentUser = await getUser(userId, username, guildId);
