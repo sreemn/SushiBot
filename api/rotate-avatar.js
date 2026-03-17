@@ -3,7 +3,11 @@ let lastAvatarUpdate = 0;
 async function maybeRotateAvatar() {
   const now = Date.now();
 
-  if (now - lastAvatarUpdate < 60 * 1000) return;
+  if (now - lastAvatarUpdate < 60 * 1000) {
+    console.log("Skipped: cooldown");
+    return;
+  }
+
   lastAvatarUpdate = now;
 
   try {
@@ -16,12 +20,13 @@ async function maybeRotateAvatar() {
     ];
 
     const index = Math.floor(Date.now() / (60 * 1000)) % avatars.length;
+    console.log("Using avatar index:", index);
 
     const imgRes = await fetch(avatars[index]);
     const buffer = await imgRes.arrayBuffer();
     const base64 = Buffer.from(buffer).toString("base64");
 
-    await fetch("https://discord.com/api/v10/users/@me", {
+    const res = await fetch("https://discord.com/api/v10/users/@me", {
       method: "PATCH",
       headers: {
         Authorization: `Bot ${TOKEN}`,
@@ -31,8 +36,12 @@ async function maybeRotateAvatar() {
         avatar: `data:image/png;base64,${base64}`
       })
     });
+
+    const data = await res.json();
+    console.log("Discord response:", data);
+
   } catch (e) {
-    console.error(e);
+    console.error("Error:", e);
   }
 }
 
