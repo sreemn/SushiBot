@@ -489,40 +489,51 @@ if (name === "leaderboard") {
 
   for (let i = 0; i < topUsers.length; i++) {
     const u = topUsers[i];
-    rows += `${i + 1}. <@${u.userId}> - \`${u.balance.toLocaleString()}\`\n`;
+    rows += `${i + 1}. <@${u.userId}> ・ \`${u.balance.toLocaleString()}\` 🍪\n`;
   }
 
   const currentUser = await getUser(userId, username, guildId);
 
-  if (currentUser.balance <= 0) {
-    return res.status(200).json({
-      type: 4,
-      data: {
-        embeds: [
-          {
-            color: 0x3a3b40,
-            title: "Leaderboard",
-            description: `${rows}\n-# Earn cookies to enter the leaderboard!`
-          }
-        ]
-      }
-    });
-  }
+  let footerText = "";
 
-  const rank =
-    (await usersCollection.countDocuments({
-      guildId,
-      balance: { $gt: currentUser.balance }
-    })) + 1;
+  if (!currentUser || currentUser.balance <= 0) {
+    footerText = "You are not ranked yet.";
+  } else {
+    const rank =
+      (await usersCollection.countDocuments({
+        guildId,
+        balance: { $gt: currentUser.balance }
+      })) + 1;
+
+    footerText = `-# You are ranked #${rank} with a score of \`${currentUser.balance.toLocaleString()}\` 🍪.`;
+  }
 
   return res.status(200).json({
     type: 4,
     data: {
-      embeds: [
+      components: [
         {
-          color: 0x3a3b40,
-          title: "Leaderboard",
-          description: `${rows}\n-# You are currently ranked **#${rank}**!`
+          type: 17,
+          components: [
+            {
+              type: 10,
+              content: "# Leaderboard"
+            },
+            {
+              type: 14
+            },
+            {
+              type: 10,
+              content: rows || "*No one is ranked yet.*"
+            },
+            {
+              type: 14
+            },
+            {
+              type: 10,
+              content: footerText
+            }
+          ]
         }
       ]
     }
