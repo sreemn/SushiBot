@@ -177,15 +177,40 @@ export default async function handler(req, res) {
       }
     });
   }
+if (name === "ping") {
+  const start = Date.now();
 
-  if (name === "ping") {
-    const latency = Math.floor(Math.random() * 40) + 90;
+  await fetch("https://discord.com/api/v10/gateway");
 
-    return res.status(200).json({
-      type: 4,
-      data: { content: `Pong! My heartbeat is \`${latency}ms\`! 💓` }
-    });
-  }
+  const latency = Date.now() - start;
+
+  const uptimeSec = process.uptime();
+  const d = Math.floor(uptimeSec / 86400);
+  const h = Math.floor((uptimeSec % 86400) / 3600);
+  const m = Math.floor((uptimeSec % 3600) / 60);
+
+  const uptime =
+    (d > 0 ? `${d}d ` : "") +
+    (h > 0 ? `${h}h ` : "") +
+    `${m}m`;
+
+  const region = process.env.VERCEL_REGION || "unknown";
+  const version = "v1.0.0";
+
+  return res.status(200).json({
+    type: 4,
+    data: {
+      content:
+`**Pong!**
+data applies to this runtime instance
+
+> latency   ${latency} ms  
+> uptime    ${uptime}  
+> region    ${region}  
+> version   ${version}`
+    }
+  });
+}
 
   if (name === "invite") {
     return res.status(200).json({
