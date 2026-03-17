@@ -205,9 +205,8 @@ if (name === "ping") {
   ].filter(Boolean);
 
   const uptime = parts.join(", ");
-
   const region = process.env.VERCEL_REGION || "unknown";
-  const version = "v1.0.0";
+  const version = "v3.19.0";
 
   return res.status(200).json({
     type: 4,
