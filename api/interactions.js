@@ -208,10 +208,10 @@ export default async function handler(req, res) {
 `**Pong!**
 data applies to this runtime instance
 
-> latency   ${latency} ms  
-> uptime    ${uptime}  
-> region    ${region}  
-> version   ${version}`
+> • latency   \`${latency} ms\`
+> • uptime    \`${uptime}\` 
+> • region    \`${region}\` 
+> • version   \`${version}`\`
         }
       ]
     }
