@@ -476,6 +476,8 @@ if (name === "reset") {
 }
 
 if (name === "leaderboard") {
+  res.status(200).json({ type: 5 });
+
   const db = await getDB();
   const usersCollection = db.collection("users");
 
@@ -485,25 +487,15 @@ if (name === "leaderboard") {
     .limit(10)
     .toArray();
 
-  if (topUsers.length === 0) {
-    return res.status(200).json({
-      type: 4,
-      data: {
-        embeds: [
-          {
-            color: 0x2b2d31,
-            title: "Leaderboard",
-            description: "No one is ranked yet."
-          }
-        ]
-      }
-    });
-  }
-
   let rows = "";
-  for (let i = 0; i < topUsers.length; i++) {
-    const u = topUsers[i];
-    rows += `**${i + 1}.** <@${u.userId}> • \`${u.balance.toLocaleString()}\` <:Candy:1483435884358664293>\n`;
+
+  if (topUsers.length === 0) {
+    rows = "No one is ranked yet.";
+  } else {
+    for (let i = 0; i < topUsers.length; i++) {
+      const u = topUsers[i];
+      rows += `**${i + 1}.** <@${u.userId}> • \`${u.balance.toLocaleString()}\` <:Candy:1483435884358664293>\n`;
+    }
   }
 
   const currentUser = await getUser(userId, username, guildId);
@@ -526,24 +518,25 @@ if (name === "leaderboard") {
     }
   }
 
-  return res.status(200).json({
-    type: 4,
-    data: {
+  await fetch(`https://discord.com/api/v10/webhooks/${APP_ID}/${body.token}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
       embeds: [
         {
           color: 0x2b2d31,
           title: "Leaderboard",
           description: rows,
-          footer: {
-            text: footerText
-          }
+          footer: { text: footerText }
         }
       ],
       components: [
         { type: 14 },
         { type: 14 }
       ]
-    }
+    })
   });
 }
 
