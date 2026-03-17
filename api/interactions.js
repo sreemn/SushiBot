@@ -536,7 +536,7 @@ if (name === "leaderboard") {
   if (isTop10) {
     rankText = `-# Congratulations! You are currently ranked **#${rank}**!`;
   } else {
-    rankText = `-# You are ranked **#${rank}** with a score of ${currentUser.balance.toLocaleString()} <:Candy:1483435884358664293>.`;
+    rankText = `-# You are ranked **#${rank}** <:Candy:1483435884358664293>.`;
   }
 
   return res.status(200).json({
