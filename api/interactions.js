@@ -476,85 +476,93 @@ if (name === "reset") {
 }
 
 if (name === "leaderboard") {
-  const db = await getDB();
-  const usersCollection = db.collection("users");
+  res.status(200).json({ type: 5 });
 
-  const topUsers = await usersCollection
-    .find({ guildId, balance: { $gt: 0 } })
-    .sort({ balance: -1 })
-    .limit(10)
-    .toArray();
+  (async () => {
+    const db = await getDB();
+    const usersCollection = db.collection("users");
 
-  const currentUser = await getUser(userId, username, guildId);
+    const topUsers = await usersCollection
+      .find({ guildId, balance: { $gt: 0 } })
+      .sort({ balance: -1 })
+      .limit(10)
+      .toArray();
 
-  let components = [];
+    const currentUser = await getUser(userId, username, guildId);
 
-  components.push({
-    type: 17,
-    components: [
-      {
-        type: 10,
-        content: `## Leaderboard`
-      }
-    ]
-  });
-
-  components.push({
-    type: 14
-  });
-
-  for (let i = 0; i < topUsers.length; i++) {
-    const u = topUsers[i];
+    let components = [];
 
     components.push({
       type: 17,
       components: [
         {
           type: 10,
-          content: `${i + 1}. <@${u.userId}> • \`${u.balance.toLocaleString()}\` <:Candy:1483435884358664293>`
+          content: `## Leaderboard`
         }
       ]
     });
-  }
 
-  components.push({
-    type: 14
-  });
+    components.push({ type: 14 });
 
-  if (currentUser.balance > 0) {
-    const rank =
-      (await usersCollection.countDocuments({
-        guildId,
-        balance: { $gt: currentUser.balance }
-      })) + 1;
+    for (let i = 0; i < topUsers.length; i++) {
+      const u = topUsers[i;
 
-    components.push({
-      type: 17,
-      components: [
-        {
-          type: 10,
-          content: `You are ranked #${rank} with a score of ${currentUser.balance.toLocaleString()} <:Candy:1483435884358664293>.`
-        }
-      ]
-    });
-  } else {
-    components.push({
-      type: 17,
-      components: [
-        {
-          type: 10,
-          content: `You are not ranked yet.`
-        }
-      ]
-    });
-  }
-
-  return res.status(200).json({
-    type: 4,
-    data: {
-      components
+      components.push({
+        type: 17,
+        components: [
+          {
+            type: 10,
+            content: `${i + 1}. <@${u.userId}> • \`${u.balance.toLocaleString()}\` <:Candy:1483435884358664293>`
+          }
+        ]
+      });
     }
-  });
+
+    components.push({ type: 14 });
+
+    if (currentUser.balance > 0) {
+      const rank =
+        (await usersCollection.countDocuments({
+          guildId,
+          balance: { $gt: currentUser.balance }
+        })) + 1;
+
+      components.push({
+        type: 17,
+        components: [
+          {
+            type: 10,
+            content: `You are ranked #${rank} with a score of ${currentUser.balance.toLocaleString()} <:Candy:1483435884358664293>.`
+          }
+        ]
+      });
+    } else {
+      components.push({
+        type: 17,
+        components: [
+          {
+            type: 10,
+            content: `You are not ranked yet.`
+          }
+        ]
+      });
+    }
+
+    await fetch(
+      `https://discord.com/api/v10/webhooks/${APP_ID}/${body.token}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          components
+        })
+      }
+    );
+  })();
+
+  return;
 }
 
   return res.status(200).json({
