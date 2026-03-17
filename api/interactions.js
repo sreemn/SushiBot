@@ -485,46 +485,74 @@ if (name === "leaderboard") {
     .limit(10)
     .toArray();
 
-  let rows = "";
+  const currentUser = await getUser(userId, username, guildId);
+
+  let components = [];
+
+  components.push({
+    type: 17,
+    components: [
+      {
+        type: 10,
+        content: `## Leaderboard`
+      }
+    ]
+  });
+
+  components.push({
+    type: 14
+  });
 
   for (let i = 0; i < topUsers.length; i++) {
     const u = topUsers[i];
-    rows += `${i + 1}. <@${u.userId}> - \`${u.balance.toLocaleString()}\`\n`;
-  }
 
-  const currentUser = await getUser(userId, username, guildId);
-
-  if (currentUser.balance <= 0) {
-    return res.status(200).json({
-      type: 4,
-      data: {
-        embeds: [
-          {
-            color: 0x3a3b40,
-            title: "Leaderboard",
-            description: `${rows}\n-# Earn cookies to enter the leaderboard!`
-          }
-        ]
-      }
+    components.push({
+      type: 17,
+      components: [
+        {
+          type: 10,
+          content: `${i + 1}. <@${u.userId}> • \`${u.balance.toLocaleString()}\` <:Candy:1483435884358664293>`
+        }
+      ]
     });
   }
 
-  const rank =
-    (await usersCollection.countDocuments({
-      guildId,
-      balance: { $gt: currentUser.balance }
-    })) + 1;
+  components.push({
+    type: 14
+  });
+
+  if (currentUser.balance > 0) {
+    const rank =
+      (await usersCollection.countDocuments({
+        guildId,
+        balance: { $gt: currentUser.balance }
+      })) + 1;
+
+    components.push({
+      type: 17,
+      components: [
+        {
+          type: 10,
+          content: `You are ranked #${rank} with a score of ${currentUser.balance.toLocaleString()} <:Candy:1483435884358664293>.`
+        }
+      ]
+    });
+  } else {
+    components.push({
+      type: 17,
+      components: [
+        {
+          type: 10,
+          content: `You are not ranked yet.`
+        }
+      ]
+    });
+  }
 
   return res.status(200).json({
     type: 4,
     data: {
-      embeds: [
-        {
-          color: 0x3a3b40,
-          title: "Leaderboard",
-          description: `${rows}\n-# You are ranked #${rank} with a score of \`${currentUser.balance.toLocaleString()}\` 🍪.`
-        }
-      ]
+      components
     }
   });
 }
