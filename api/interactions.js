@@ -164,7 +164,7 @@ export default async function handler(req, res) {
       data: {
         embeds: [
           {
-            color: 0x5eaaf8,
+            color: 0xC0EEFF,
             title: "About Fireside",
             description: "I'm a multipurpose Discord bot designed to make your server more fun and engaging!",
             fields: [
@@ -333,7 +333,7 @@ export default async function handler(req, res) {
         flags: 64,
         embeds: [
           {
-            color: 0x828ae2,
+            color: 0x9EB5FF,
             description: `${username}'s Balance: ${user.balance.toLocaleString()} cookies 🍪`
           }
         ]
