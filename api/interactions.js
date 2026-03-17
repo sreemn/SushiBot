@@ -178,7 +178,7 @@ export default async function handler(req, res) {
     });
   }
 
-  if (name === "ping") {
+if (name === "ping") {
   const start = Date.now();
 
   await fetch("https://discord.com/api/v10/gateway");
@@ -209,9 +209,9 @@ export default async function handler(req, res) {
 data applies to this runtime instance
 
 > • latency   \`${latency} ms\`
-> • uptime    \`${uptime}\` 
-> • region    \`${region}\` 
-> • version   \`${version}`\`
+> • uptime    \`${uptime}\`
+> • region    \`${region}\`
+> • version   \`${version}\``
         }
       ]
     }
