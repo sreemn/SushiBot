@@ -1,30 +1,31 @@
-let lastAvatarUpdate = 0;
+import fetch from "node-fetch";
 
-async function maybeRotateAvatar() {
-  const now = Date.now();
+const TOKEN = process.env.BOT_TOKEN;
 
-  if (now - lastAvatarUpdate < 60 * 1000) {
-    console.log("Skipped: cooldown");
-    return;
-  }
+const avatars = [
+  "https://drive.google.com/uc?export=download&id=15faIMzZKCm12UEUGagEawPuffTaXnsMr",
+  "https://drive.google.com/uc?export=download&id=1D_-79WFUo_gk7UvP7jlQsFAAup4amxo-",
+  "https://drive.google.com/uc?export=download&id=17w44n8fXptohTV59llK6zUJswSa7NG_K"
+];
 
-  lastAvatarUpdate = now;
+let currentIndex = -1;
+let lastHash = null;
 
+async function getBase64(url) {
+  const res = await fetch(url);
+  const buffer = await res.arrayBuffer();
+  return Buffer.from(buffer).toString("base64");
+}
+
+async function rotateAvatar() {
   try {
-    const TOKEN = process.env.BOT_TOKEN;
+    currentIndex = (currentIndex + 1) % avatars.length;
 
-    const avatars = [
-      "https://drive.google.com/uc?export=download&id=15faIMzZKCm12UEUGagEawPuffTaXnsMr",
-      "https://drive.google.com/uc?export=download&id=1D_-79WFUo_gk7UvP7jlQsFAAup4amxo-",
-      "https://drive.google.com/uc?export=download&id=17w44n8fXptohTV59llK6zUJswSa7NG_K"
-    ];
+    const base64 = await getBase64(avatars[currentIndex]);
 
-    const index = Math.floor(Date.now() / (60 * 1000)) % avatars.length;
-    console.log("Using avatar index:", index);
+    if (base64 === lastHash) return;
 
-    const imgRes = await fetch(avatars[index]);
-    const buffer = await imgRes.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString("base64");
+    lastHash = base64;
 
     const res = await fetch("https://discord.com/api/v10/users/@me", {
       method: "PATCH",
@@ -37,15 +38,24 @@ async function maybeRotateAvatar() {
       })
     });
 
-    const data = await res.json();
-    console.log("Discord response:", data);
+    if (res.status === 429) {
+      const data = await res.json();
+      const wait = (data.retry_after || 10) * 1000;
+      console.log("Rate limited. Waiting:", wait);
+      setTimeout(rotateAvatar, wait);
+      return;
+    }
 
-  } catch (e) {
-    console.error("Error:", e);
+    console.log("Avatar updated:", new Date().toLocaleTimeString());
+
+  } catch (err) {
+    console.error("Rotation error:", err);
   }
 }
 
-export default async function handler(req, res) {
-  await maybeRotateAvatar();
-  res.status(200).end();
+function start() {
+  rotateAvatar();
+  setInterval(rotateAvatar, 10 * 60 * 1000);
 }
+
+start();
