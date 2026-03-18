@@ -493,7 +493,7 @@ ${username} obtained ${reward} <:star:1483739099558055986>`
     });
   }
 
-  if (name === "bake") {
+  if (name === "forage") {
     const user = await getUser(userId, username, guildId);
     const left = cooldownLeft(user.lastBake, BAKE_COOLDOWN);
 
@@ -530,7 +530,7 @@ ${username} obtained ${reward} <:star:1483739099558055986>`
     });
   }
 
-  if (name === "cook") {
+  if (name === "gamble") {
     const amount = body.data.options.find(o => o.name === "amount").value;
     const user = await getUser(userId, username, guildId);
 
