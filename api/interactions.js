@@ -284,6 +284,36 @@ if (name === "help") {
   });
 }
 
+if (name === "donate") {
+  return res.status(200).json({
+    type: 4,
+    data: {
+      flags: 64,
+      content:
+`If you're interested in supporting Miyra, you can help keep the project growing. Your support directly helps cover development, infrastructure, and the time invested into building new features. Thank you for being part of this journey.
+
+Don't forget to link your Discord account with Ko-Fi to receive a special Donator role and exclusive recognition.`,
+      
+      components: [
+        {
+          type: 1,
+          components: [
+            {
+              type: 2,
+              style: 5,
+              label: "Donate",
+              emoji: {
+                id: "1483739097200721970"
+              },
+              url: "https://ko-fi.com/sremn"
+            }
+          ]
+        }
+      ]
+    }
+  });
+}
+
 if (name === "bless") {
   const target = body.data.options.find(o => o.name === "user").value;
 
