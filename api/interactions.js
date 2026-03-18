@@ -238,7 +238,7 @@ if (name === "help") {
           description:
 `type \`/\` and click my icon to see a list of my commands.
 
-[guides](https://fireside.bot/) | [support](https://discord.gg/CsEwcm9RBC) | [invite fireside](https://discord.com/oauth2/authorize?client_id=1482044394109407373)`,
+[guides](https://miyra.bot/) | [support](https://discord.gg/CsEwcm9RBC) | [invite miyra](https://discord.com/oauth2/authorize?client_id=1482044394109407373)`,
           image: {
             url: "https://cdn.discordapp.com/attachments/1483714582651469935/1483720492773806110/ChatGPT_Image_Mar_18_2026_at_12_25_07_PM.png?ex=69bb9de3&is=69ba4c63&hm=8c8a73778794e7e7c65754df8fa20a7eba5b61ef717d8fa7009b26a474d27efd"
           }
