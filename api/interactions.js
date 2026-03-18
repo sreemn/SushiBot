@@ -165,11 +165,11 @@ export default async function handler(req, res) {
         embeds: [
           {
             color: 0xC0EEFF,
-            title: "About Fireside",
+            title: "About Miyra",
             description: "I'm a multipurpose Discord bot designed to make your server more fun and engaging!",
             fields: [
               { name: "Developer", value: "[sreeman](https://discord.com/users/783891446905438260)", inline: true },
-              { name: "Website", value: "[fireside.bot](https://fireside.bot)", inline: true }
+              { name: "Website", value: "[miyra.bot](https://miyra.bot/)", inline: true }
             ],
             footer: { text: `Serving ${guildCount} guilds and ${userCount} users` }
           }
@@ -240,7 +240,7 @@ if (name === "help") {
 
 [guides](https://fireside.bot/) | [support](https://discord.gg/CsEwcm9RBC) | [invite fireside](https://discord.com/oauth2/authorize?client_id=1482044394109407373)`,
           image: {
-            url: "https://cdn.discordapp.com/attachments/1483714582651469935/1483718319201587200/ChatGPT_Image_Mar_18_2026_at_12_16_25_PM.png"
+            url: "https://cdn.discordapp.com/attachments/1483714582651469935/1483720492773806110/ChatGPT_Image_Mar_18_2026_at_12_25_07_PM.png?ex=69bb9de3&is=69ba4c63&hm=8c8a73778794e7e7c65754df8fa20a7eba5b61ef717d8fa7009b26a474d27efd"
           }
         }
       ]
