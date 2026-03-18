@@ -100,10 +100,21 @@ function rand(min, max) {
 
 function getNextResetTimestamp() {
   const now = new Date();
-  const reset = new Date();
+
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+
+  const istNow = new Date(utc + (5.5 * 60 * 60 * 1000));
+
+  const reset = new Date(istNow);
   reset.setHours(5, 30, 0, 0);
-  if (now >= reset) reset.setDate(reset.getDate() + 1);
-  return Math.floor(reset.getTime() / 1000);
+
+  if (istNow >= reset) {
+    reset.setDate(reset.getDate() + 1);
+  }
+
+  const resetUTC = new Date(reset.getTime() - (5.5 * 60 * 60 * 1000));
+
+  return Math.floor(resetUTC.getTime() / 1000);
 }
 
 function isSameResetCycle(lastTime) {
