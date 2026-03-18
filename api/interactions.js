@@ -480,7 +480,7 @@ ${username} obtained ${reward} <:star:1483739099558055986>`
       });
     }
 
-    const reward = rand(2000, 3500);
+    const reward = rand(500, 1500);
 
     await safeBalanceUpdate(userId, guildId, reward);
     await setField(userId, guildId, "lastDaily", new Date());
