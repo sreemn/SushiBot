@@ -312,7 +312,7 @@ if (name === "help") {
     data: {
       embeds: [
         {
-          color: 0xFDE68A,
+          color: 0xC0EEFF,
           author: {
             name: username,
             icon_url: avatar
