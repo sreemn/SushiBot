@@ -249,25 +249,25 @@ data applies to this runtime instance
       }
     });
   }
+if (name === "help") {
+  return res.status(200).json({
+    type: 4,
+    data: {
+      embeds: [
+        {
+          color: 0x36454F,
+          description:
+`type \`/\` and click my icon to see a list of my commands.
 
-  if (name === "help") {
-    return res.status(200).json({
-      type: 4,
-      data: {
-        embeds: [
-          {
-            color: 0x36454F,
-            author: { name: "Fireside's Help Menu" },
-            description:
-              "I'm a multi-purpose bot designed to be a helpful and fun companion for your server. Choose a feature from the dropdown below to see what I can do!\n\nUse `/help [command]` for more details.",
-            image: {
-              url: "https://cdn.discordapp.com/attachments/1482244165114007582/1482275628861493321/HelpMenu.png?ex=69b65c41&is=69b50ac1&hm=8e6770623a777db1994b30deed862db6f78585026dd1a365de2687161f888fe3&"
-            }
+[guides](https://fireside.bot/) | [support](https://discord.gg/CsEwcm9RBC) | [invite fireside](https://discord.com/oauth2/authorize?client_id=1482044394109407373)`,
+          image: {
+            url: "https://cdn.discordapp.com/attachments/1483714582651469935/1483718319201587200/ChatGPT_Image_Mar_18_2026_at_12_16_25_PM.png"
           }
-        ]
-      }
-    });
-  }
+        }
+      ]
+    }
+  });
+}
 
   if (name === "give") {
     const target = body.data.options.find(o => o.name === "user").value;
