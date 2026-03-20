@@ -276,7 +276,7 @@ if (name === "help") {
 
 [guides](https://miyra.bot/) | [support](https://discord.gg/CsEwcm9RBC) | [invite miyra](https://discord.com/oauth2/authorize?client_id=1482044394109407373)`,
           image: {
-            url: "https://cdn.discordapp.com/attachments/1483714582651469935/1483720492773806110/ChatGPT_Image_Mar_18_2026_at_12_25_07_PM.png?ex=69bb9de3&is=69ba4c63&hm=8c8a73778794e7e7c65754df8fa20a7eba5b61ef717d8fa7009b26a474d27efd"
+            url: "https://cdn.discordapp.com/attachments/512682720296566784/948624715927420938/Getting_Help.png?ex=69be24dc&is=69bcd35c&hm=1bba9001dd5b4c7d3abb46e2f581cf7fd96a7cd6ebfc506fb663ad5140de6c6d"
           }
         }
       ]
