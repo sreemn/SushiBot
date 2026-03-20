@@ -268,18 +268,7 @@ if (name === "help") {
   return res.status(200).json({
     type: 4,
     data: {
-      embeds: [
-        {
-          color: 0xACFF8B,
-          description:
-`type \`/\` and click my icon to see a list of my commands.
-
-[guides](https://miyra.bot/) | [support](https://discord.gg/CsEwcm9RBC) | [invite miyra](https://discord.com/oauth2/authorize?client_id=1482044394109407373)`,
-          image: {
-            url: "https://cdn.discordapp.com/attachments/512682720296566784/948624715927420938/Getting_Help.png?ex=69be24dc&is=69bcd35c&hm=1bba9001dd5b4c7d3abb46e2f581cf7fd96a7cd6ebfc506fb663ad5140de6c6d"
-          }
-        }
-      ]
+      content: "You can find a list of commands here: https://yourbot.site/commands\nJoin the support server if you still have questions: https://discord.gg/yourlink"
     }
   });
 }
