@@ -214,7 +214,7 @@ export default async function handler(req, res) {
     });
   }
   
-if (name === "ping") {
+if (name === "status") {
   const start = Date.now();
 
   await fetch("https://discord.com/api/v10/gateway");
