@@ -213,34 +213,18 @@ export default async function handler(req, res) {
       }
     });
   }
+  
 if (name === "ping") {
   const start = Date.now();
 
   await fetch("https://discord.com/api/v10/gateway");
+  const apiLatency = Date.now() - start;
 
-  const latency = Date.now() - start;
+  const dbStart = Date.now();
+  const db = await getDB();
+  await db.command({ ping: 1 });
+  const dbLatency = Date.now() - dbStart;
 
-  const total = Math.floor(process.uptime());
-
-  const years = Math.floor(total / 31536000);
-  const months = Math.floor((total % 31536000) / 2592000);
-  const weeks = Math.floor((total % 2592000) / 604800);
-  const days = Math.floor((total % 604800) / 86400);
-  const hours = Math.floor((total % 86400) / 3600);
-  const minutes = Math.floor((total % 3600) / 60);
-  const seconds = total % 60;
-
-  const parts = [
-    years && `${years} yr${years > 1 ? "s" : ""}`,
-    months && `${months} mo${months > 1 ? "s" : ""}`,
-    weeks && `${weeks} wk${weeks > 1 ? "s" : ""}`,
-    days && `${days} day${days > 1 ? "s" : ""}`,
-    hours && `${hours} hr${hours > 1 ? "s" : ""}`,
-    minutes && `${minutes} min${minutes > 1 ? "s" : ""}`,
-    `${seconds} sec${seconds !== 1 ? "s" : ""}`
-  ].filter(Boolean);
-
-  const uptime = parts.join(", ");
   const region = process.env.VERCEL_REGION || "unknown";
   const version = "v3.19.0";
 
@@ -254,9 +238,10 @@ if (name === "ping") {
 `**Pong!**
 data applies to this runtime instance
 
-> • latency   \`${latency} ms\`
-> • region    \`${region}\`
-> • version   \`${version}\``
+> • api latency   \`${apiLatency} ms\`
+> • db latency    \`${dbLatency} ms\`
+> • region        \`${region}\`
+> • version       \`${version}\``
         }
       ]
     }
