@@ -238,8 +238,8 @@ if (name === "ping") {
 `**Pong!**
 data applies to this runtime instance
 
-> • api latency   \`${apiLatency} ms\`
-> • db latency    \`${dbLatency} ms\`
+> • latency   \`${apiLatency} ms\`
+> • database    \`${dbLatency} ms\`
 > • region        \`${region}\`
 > • version       \`${version}\``
         }
